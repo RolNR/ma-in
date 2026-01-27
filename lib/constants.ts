@@ -43,18 +43,12 @@ export const SCHEDULE = {
 export const ROUTES = {
   home: '/',
   // Divisiones
-  logistic: {
-    main: '/logistic',
-    services: '/logistic/services',
-    coverage: '/logistic/coverage',
-    process: '/logistic/process',
-    quote: '/logistic/quote',
-  },
-  track: {
-    main: '/track',
-    createGuide: '/track/create-guide',
-    trackShipment: '/track/track-shipment',
-    features: '/track/features',
+  logistik: {
+    main: '/logistik',
+    services: '/logistik/services',
+    coverage: '/logistik/coverage',
+    process: '/logistik/process',
+    trackShipment: '/logistik/track-shipment',
   },
   pack: {
     main: '/pack',
@@ -88,8 +82,7 @@ export const COLORS = {
 // Navegación principal
 export const MAIN_NAV = [
   { label: 'Inicio', href: ROUTES.home },
-  { label: 'Logistic', href: ROUTES.logistic.main },
-  { label: 'Track', href: ROUTES.track.main },
+  { label: 'Logistik', href: ROUTES.logistik.main },
   { label: 'Pack', href: ROUTES.pack.main },
   { label: 'Market', href: ROUTES.market.main },
   { label: 'Soporte', href: ROUTES.support.main },
@@ -97,16 +90,11 @@ export const MAIN_NAV = [
 
 // Navegación de divisiones
 export const DIVISION_NAV = {
-  logistic: [
-    { label: 'Servicios', href: ROUTES.logistic.services },
-    { label: 'Cobertura', href: ROUTES.logistic.coverage },
-    { label: 'Proceso', href: ROUTES.logistic.process },
-    { label: 'Cotización', href: ROUTES.logistic.quote },
-  ],
-  track: [
-    { label: 'Generar guía', href: ROUTES.track.createGuide },
-    { label: 'Rastrear envío', href: ROUTES.track.trackShipment },
-    { label: 'Características', href: ROUTES.track.features },
+  logistik: [
+    { label: 'Servicios', href: ROUTES.logistik.services },
+    { label: 'Cobertura', href: ROUTES.logistik.coverage },
+    { label: 'Proceso', href: ROUTES.logistik.process },
+    { label: 'Rastrear envío', href: ROUTES.logistik.trackShipment },
   ],
   pack: [
     { label: 'Catálogo', href: ROUTES.pack.catalog },
@@ -125,8 +113,7 @@ export const SUPPORT_NAV = [
 // Navegación del footer
 export const FOOTER_NAV = {
   divisiones: [
-    { label: 'Logistic', href: ROUTES.logistic.main },
-    { label: 'Track', href: ROUTES.track.main },
+    { label: 'Logistik', href: ROUTES.logistik.main },
     { label: 'Pack', href: ROUTES.pack.main },
     { label: 'Market', href: ROUTES.market.main },
   ],

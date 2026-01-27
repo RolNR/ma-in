@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { Hero } from '@/components/sections'
 import { Card, Button, Badge } from '@/components/ui'
 import { Breadcrumb } from '@/components/layout'
 import { products, productCategories, formatPrice } from '@/data/products'
 import { ROUTES } from '@/lib/constants'
-import { Box, ShoppingCart, Filter } from 'lucide-react'
+import { Box, Filter } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Catálogo de Empaques',
@@ -98,20 +97,15 @@ export default function CatalogPage() {
                       <p className="text-sm text-gray-500 mb-3 line-clamp-2">
                         {product.description}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-lg font-bold text-primary">
-                            {formatPrice(product.price)}
+                      <div>
+                        <span className="text-lg font-bold text-primary">
+                          {formatPrice(product.price)}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-400 line-through ml-2">
+                            {formatPrice(product.originalPrice)}
                           </span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-gray-400 line-through ml-2">
-                              {formatPrice(product.originalPrice)}
-                            </span>
-                          )}
-                        </div>
-                        <Button variant="primary" size="sm">
-                          <ShoppingCart className="w-4 h-4" />
-                        </Button>
+                        )}
                       </div>
                     </div>
                   </Card>

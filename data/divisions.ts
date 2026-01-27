@@ -13,33 +13,18 @@ export interface Division {
 
 export const divisions: Division[] = [
   {
-    id: 'logistic',
-    name: 'MA-IN Logistic',
-    tagline: 'Soluciones de logística integral',
-    description: 'Servicios de transporte y distribución a nivel nacional con la mejor cobertura y tiempos de entrega garantizados.',
+    id: 'logistik',
+    name: 'MA-IN Logistik',
+    tagline: 'Logística integral y rastreo',
+    description: 'Servicios de transporte, distribución y rastreo a nivel nacional con la mejor cobertura y tiempos de entrega garantizados.',
     icon: 'truck',
-    href: ROUTES.logistic.main,
+    href: ROUTES.logistik.main,
     color: 'primary',
     features: [
       'Cobertura nacional',
       'Entregas programadas',
-      'Almacenaje y distribución',
-      'Logística inversa',
-    ],
-  },
-  {
-    id: 'track',
-    name: 'MA-IN Track',
-    tagline: 'Rastreo en tiempo real',
-    description: 'Sistema de rastreo inteligente para monitorear tus envíos en tiempo real desde cualquier dispositivo.',
-    icon: 'map-pin',
-    href: ROUTES.track.main,
-    color: 'primary',
-    features: [
       'Rastreo en tiempo real',
-      'Notificaciones automáticas',
-      'Historial de envíos',
-      'API de integración',
+      'Logística inversa',
     ],
   },
   {
@@ -60,22 +45,22 @@ export const divisions: Division[] = [
   {
     id: 'market',
     name: 'MA-IN Market',
-    tagline: 'Tienda en línea',
-    description: 'Compra empaques, suministros de oficina y más en nuestra tienda en línea con envío a todo México.',
+    tagline: 'Tienda y menú',
+    description: 'Consulta nuestro menú y productos disponibles escaneando el código QR.',
     icon: 'shopping-cart',
     href: ROUTES.market.main,
     color: 'accent',
     features: [
-      'Catálogo extenso',
-      'Precios competitivos',
-      'Envío a todo México',
-      'Facturación electrónica',
+      'Menú digital',
+      'Código QR',
+      'Productos disponibles',
+      'Fácil acceso',
     ],
   },
 ]
 
 export const divisionDetails = {
-  logistic: {
+  logistik: {
     hero: {
       title: 'Logística integral para tu negocio',
       subtitle: 'Conectamos tu empresa con todo México a través de soluciones de transporte confiables y eficientes.',
@@ -152,13 +137,7 @@ export const divisionDetails = {
         description: 'Entregamos en el destino con confirmación de recepción.',
       },
     ],
-  },
-  track: {
-    hero: {
-      title: 'Rastrea tus envíos en tiempo real',
-      subtitle: 'Conoce la ubicación exacta de tus paquetes y recibe notificaciones automáticas de cada movimiento.',
-    },
-    features: [
+    trackingFeatures: [
       {
         id: 'tiempo-real',
         title: 'Rastreo en Tiempo Real',
@@ -197,12 +176,9 @@ export const divisionDetails = {
       },
     ],
     trackingStatuses: [
-      { code: 'CREATED', label: 'Guía generada', color: 'gray' },
-      { code: 'PICKED_UP', label: 'Recolectado', color: 'blue' },
-      { code: 'IN_TRANSIT', label: 'En tránsito', color: 'yellow' },
-      { code: 'OUT_FOR_DELIVERY', label: 'En camino', color: 'orange' },
-      { code: 'DELIVERED', label: 'Entregado', color: 'green' },
-      { code: 'RETURNED', label: 'Devuelto', color: 'red' },
+      { code: 'RECOLECTADO POR MA-IN', label: 'Recolectado por MA-IN', color: 'blue' },
+      { code: 'EN_TRANSITO', label: 'En tránsito', color: 'yellow' },
+      { code: 'CONFIRMADO', label: 'Confirmado', color: 'green' },
     ],
   },
   pack: {
@@ -277,18 +253,10 @@ export const divisionDetails = {
   },
   market: {
     hero: {
-      title: 'Tu tienda de empaques en línea',
-      subtitle: 'Encuentra todo lo que necesitas para embalar y enviar tus productos con los mejores precios.',
+      title: 'MA-IN Market',
+      subtitle: 'Escanea el código QR para ver nuestro menú.',
     },
-    categories: [
-      { id: 'empaques', name: 'Empaques', count: 150 },
-      { id: 'cintas', name: 'Cintas', count: 45 },
-      { id: 'etiquetas', name: 'Etiquetas', count: 60 },
-      { id: 'relleno', name: 'Material de relleno', count: 35 },
-      { id: 'oficina', name: 'Suministros de oficina', count: 80 },
-      { id: 'limpieza', name: 'Limpieza', count: 40 },
-    ],
   },
 }
 
-export type DivisionId = 'logistic' | 'track' | 'pack' | 'market'
+export type DivisionId = 'logistik' | 'pack' | 'market'

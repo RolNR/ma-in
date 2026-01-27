@@ -9,25 +9,25 @@ import { Phone, Mail, HelpCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Rastrear Envío',
-  description: 'Rastrea tu paquete en tiempo real. Ingresa tu número de guía y conoce el estado actual de tu envío.',
+  description: 'Rastrea tu paquete en tiempo real. Ingresa tu código de rastreo y conoce el estado actual de tu envío.',
 }
 
 export default function TrackShipmentPage() {
-  const { trackingStatuses } = divisionDetails.track
+  const { trackingStatuses } = divisionDetails.logistik
 
   return (
     <>
       <Hero
         title="Rastrear Envío"
-        subtitle="MA-IN Track"
-        description="Ingresa tu número de guía para conocer la ubicación exacta de tu paquete."
+        subtitle="MA-IN Logistik"
+        description="Ingresa tu código de rastreo para conocer el estado de tu paquete."
         size="sm"
       />
 
       <div className="container-custom py-4">
         <Breadcrumb
           items={[
-            { label: 'Track', href: ROUTES.track.main },
+            { label: 'Logistik', href: ROUTES.logistik.main },
             { label: 'Rastrear envío' },
           ]}
         />
@@ -54,7 +54,7 @@ export default function TrackShipmentPage() {
                   {trackingStatuses.map((status) => (
                     <li key={status.code} className="flex items-center gap-3">
                       <span
-                        className={`w-3 h-3 rounded-full bg-${status.color}-500`}
+                        className="w-3 h-3 rounded-full"
                         style={{
                           backgroundColor:
                             status.color === 'gray'
@@ -113,10 +113,9 @@ export default function TrackShipmentPage() {
                   Consejos
                 </h3>
                 <ul className="space-y-2 text-sm text-primary-600">
-                  <li>• Tu número de guía tiene mínimo 8 caracteres</li>
-                  <li>• Comienza con las letras MAIN</li>
+                  <li>• Tu código de rastreo tiene 10 dígitos</li>
                   <li>• Los resultados se actualizan en tiempo real</li>
-                  <li>• Puedes rastrear múltiples guías</li>
+                  <li>• Hay dos tipos de guía: Express y Economy</li>
                 </ul>
               </Card>
             </div>

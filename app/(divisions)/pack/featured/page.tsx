@@ -5,7 +5,7 @@ import { Card, Button, Badge } from '@/components/ui'
 import { Breadcrumb } from '@/components/layout'
 import { getFeaturedProducts, productCategories, formatPrice } from '@/data/products'
 import { ROUTES } from '@/lib/constants'
-import { Box, ShoppingCart, Star, ArrowRight } from 'lucide-react'
+import { Box, Star, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Productos Destacados',
@@ -78,20 +78,15 @@ export default function FeaturedPage() {
                     {product.description}
                   </p>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xl font-bold text-primary">
-                        {formatPrice(product.price)}
+                  <div>
+                    <span className="text-xl font-bold text-primary">
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.originalPrice && (
+                      <span className="text-sm text-gray-400 line-through ml-2">
+                        {formatPrice(product.originalPrice)}
                       </span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-gray-400 line-through ml-2">
-                          {formatPrice(product.originalPrice)}
-                        </span>
-                      )}
-                    </div>
-                    <Button variant="primary" size="sm" leftIcon={<ShoppingCart className="w-4 h-4" />}>
-                      Agregar
-                    </Button>
+                    )}
                   </div>
                 </div>
               </Card>

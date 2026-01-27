@@ -31,12 +31,12 @@ export default function HomePage() {
         subtitle="MA-IN Logística"
         description="Conectamos tu empresa con todo México. Servicios de transporte, rastreo, empaque y comercio electrónico en una sola plataforma."
         primaryAction={{
-          label: 'Cotizar envío',
-          href: ROUTES.logistic.quote,
+          label: 'Conocer servicios',
+          href: ROUTES.logistik.services,
         }}
         secondaryAction={{
           label: 'Rastrear paquete',
-          href: ROUTES.track.trackShipment,
+          href: ROUTES.logistik.trackShipment,
         }}
         size="lg"
       />
@@ -46,7 +46,7 @@ export default function HomePage() {
         <div className="container-custom">
           <div className="bg-white rounded-2xl shadow-xl p-6 grid md:grid-cols-3 gap-4">
             <Link
-              href={ROUTES.track.trackShipment}
+              href={ROUTES.logistik.trackShipment}
               className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors group"
             >
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -62,7 +62,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href={ROUTES.logistic.quote}
+              href={ROUTES.logistik.services}
               className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors group"
             >
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -70,9 +70,9 @@ export default function HomePage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                  Cotizar envío
+                  Nuestros servicios
                 </h3>
-                <p className="text-sm text-gray-500">Obtén tu precio</p>
+                <p className="text-sm text-gray-500">Ver opciones</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </Link>
@@ -105,12 +105,12 @@ export default function HomePage() {
               Todo lo que necesitas en un solo lugar
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Cuatro divisiones especializadas trabajando juntas para ofrecer
+              Tres divisiones especializadas trabajando juntas para ofrecer
               soluciones completas de logística y comercio.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {divisions.map((division) => (
               <DivisionCard
                 key={division.id}
@@ -165,12 +165,12 @@ export default function HomePage() {
         title="¿Listo para optimizar tu logística?"
         description="Contáctanos hoy y descubre cómo podemos ayudar a tu negocio a crecer con nuestras soluciones de transporte, rastreo y empaque."
         primaryAction={{
-          label: 'Solicitar cotización',
-          href: ROUTES.logistic.quote,
+          label: 'Contactar',
+          href: ROUTES.support.contact,
         }}
         secondaryAction={{
-          label: 'Contactar ventas',
-          href: ROUTES.support.contact,
+          label: 'Ver servicios',
+          href: ROUTES.logistik.services,
         }}
         variant="centered"
         background="gradient"

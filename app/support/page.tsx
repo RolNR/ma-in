@@ -147,14 +147,9 @@ export default function SupportPage() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href={ROUTES.track.trackShipment}>
+            <Link href={ROUTES.logistik.trackShipment}>
               <Button variant="outline">
                 Rastrear envío
-              </Button>
-            </Link>
-            <Link href={ROUTES.logistic.quote}>
-              <Button variant="outline">
-                Cotizar envío
               </Button>
             </Link>
             <Link href={ROUTES.pack.catalog}>

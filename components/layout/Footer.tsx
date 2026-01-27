@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { COMPANY, LOCATION, SCHEDULE, FOOTER_NAV, SOCIAL_LINKS, ROUTES } from '@/lib/constants'
 import { getWhatsAppLink, getEmailLink } from '@/lib/utils'
 import {
@@ -30,9 +31,13 @@ export function Footer() {
           {/* Company info */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-white text-lg">
-                MA
-              </div>
+              <Image
+                src="/logo.svg"
+                alt={COMPANY.name}
+                width={40}
+                height={24}
+                className="h-8 w-auto"
+              />
               <span className="font-bold text-xl text-white">
                 {COMPANY.name}
               </span>
@@ -101,18 +106,10 @@ export function Footer() {
               ))}
               <li>
                 <Link
-                  href={ROUTES.track.trackShipment}
+                  href={ROUTES.logistik.trackShipment}
                   className="text-sm hover:text-primary transition-colors"
                 >
                   Rastrear envío
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={ROUTES.logistic.quote}
-                  className="text-sm hover:text-primary transition-colors"
-                >
-                  Cotizar envío
                 </Link>
               </li>
             </ul>

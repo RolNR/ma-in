@@ -35,7 +35,7 @@ export default function ServicesPage() {
     <>
       <Hero
         title="Servicios de Logística"
-        subtitle="MA-IN Logistic"
+        subtitle="MA-IN Logistik"
         description="Descubre nuestra gama completa de servicios de transporte y distribución diseñados para impulsar tu negocio."
         size="sm"
       />
@@ -43,7 +43,7 @@ export default function ServicesPage() {
       <div className="container-custom py-4">
         <Breadcrumb
           items={[
-            { label: 'Logistic', href: ROUTES.logistic.main },
+            { label: 'Logistik', href: ROUTES.logistik.main },
             { label: 'Servicios' },
           ]}
         />
@@ -79,9 +79,9 @@ export default function ServicesPage() {
                           </li>
                         ))}
                       </ul>
-                      <Link href={ROUTES.logistic.quote}>
+                      <Link href={ROUTES.support.contact}>
                         <Button variant="primary">
-                          Solicitar cotización
+                          Contactar
                         </Button>
                       </Link>
                     </div>

@@ -80,7 +80,7 @@ export default function FAQPage() {
                 <ul className="space-y-2">
                   <li>
                     <Link
-                      href={ROUTES.track.trackShipment}
+                      href={ROUTES.logistik.trackShipment}
                       className="text-primary hover:underline text-sm"
                     >
                       ¿Cómo rastreo mi paquete?
@@ -88,18 +88,10 @@ export default function FAQPage() {
                   </li>
                   <li>
                     <Link
-                      href={ROUTES.logistic.coverage}
+                      href={ROUTES.logistik.coverage}
                       className="text-primary hover:underline text-sm"
                     >
                       ¿Cuál es la cobertura?
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href={ROUTES.logistic.quote}
-                      className="text-primary hover:underline text-sm"
-                    >
-                      ¿Cómo cotizo un envío?
                     </Link>
                   </li>
                   <li>

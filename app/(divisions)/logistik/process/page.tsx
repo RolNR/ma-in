@@ -10,25 +10,24 @@ import {
   Truck,
   MapPin,
   Package,
-  ArrowRight,
   CheckCircle,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Proceso de Envío',
-  description: 'Conoce el proceso paso a paso para enviar tu paquete con MA-IN Logistic.',
+  description: 'Conoce el proceso paso a paso para enviar tu paquete con MA-IN Logistik.',
 }
 
 const processIcons = [FileText, Package, Truck, MapPin]
 
 export default function ProcessPage() {
-  const { process } = divisionDetails.logistic
+  const { process } = divisionDetails.logistik
 
   return (
     <>
       <Hero
         title="Proceso de Envío"
-        subtitle="MA-IN Logistic"
+        subtitle="MA-IN Logistik"
         description="Un proceso simple y transparente para que tus envíos lleguen a tiempo."
         size="sm"
       />
@@ -36,7 +35,7 @@ export default function ProcessPage() {
       <div className="container-custom py-4">
         <Breadcrumb
           items={[
-            { label: 'Logistic', href: ROUTES.logistic.main },
+            { label: 'Logistik', href: ROUTES.logistik.main },
             { label: 'Proceso' },
           ]}
         />
@@ -77,7 +76,6 @@ export default function ProcessPage() {
                         {step.description}
                       </p>
 
-                      {/* Additional details per step */}
                       {step.step === 1 && (
                         <div className="bg-gray-50 rounded-lg p-4">
                           <p className="text-sm text-gray-600 mb-3">
@@ -97,9 +95,9 @@ export default function ProcessPage() {
                               Tipo de contenido
                             </li>
                           </ul>
-                          <Link href={ROUTES.logistic.quote} className="mt-4 inline-block">
+                          <Link href={ROUTES.support.contact} className="mt-4 inline-block">
                             <Button variant="primary" size="sm">
-                              Cotizar ahora
+                              Contactar para cotizar
                             </Button>
                           </Link>
                         </div>
@@ -146,7 +144,7 @@ export default function ProcessPage() {
                               Contactar a soporte 24/7
                             </li>
                           </ul>
-                          <Link href={ROUTES.track.trackShipment} className="mt-4 inline-block">
+                          <Link href={ROUTES.logistik.trackShipment} className="mt-4 inline-block">
                             <Button variant="outline" size="sm">
                               Rastrear envío
                             </Button>
@@ -186,10 +184,10 @@ export default function ProcessPage() {
 
       <CTA
         title="¿Listo para enviar?"
-        description="Comienza ahora solicitando una cotización gratuita."
+        description="Contáctanos para comenzar."
         primaryAction={{
-          label: 'Solicitar cotización',
-          href: ROUTES.logistic.quote,
+          label: 'Contactar',
+          href: ROUTES.support.contact,
         }}
         variant="centered"
         background="gradient"

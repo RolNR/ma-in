@@ -13,13 +13,13 @@ export const metadata: Metadata = {
 }
 
 export default function CoveragePage() {
-  const { coverage } = divisionDetails.logistic
+  const { coverage } = divisionDetails.logistik
 
   return (
     <>
       <Hero
         title="Cobertura Nacional"
-        subtitle="MA-IN Logistic"
+        subtitle="MA-IN Logistik"
         description="Llegamos a todo México con la red de distribución más extensa del país."
         size="sm"
       />
@@ -27,7 +27,7 @@ export default function CoveragePage() {
       <div className="container-custom py-4">
         <Breadcrumb
           items={[
-            { label: 'Logistic', href: ROUTES.logistic.main },
+            { label: 'Logistik', href: ROUTES.logistik.main },
             { label: 'Cobertura' },
           ]}
         />
