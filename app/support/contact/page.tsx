@@ -117,17 +117,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </Card>
-
-              {/* Response time */}
-              <Card className="p-6 bg-primary text-white">
-                <h3 className="font-semibold mb-2">
-                  Tiempo de respuesta
-                </h3>
-                <p className="text-white/80 text-sm">
-                  Respondemos todos los mensajes en menos de 24 horas hábiles.
-                  Para consultas urgentes, llámanos directamente.
-                </p>
-              </Card>
             </div>
           </div>
         </div>

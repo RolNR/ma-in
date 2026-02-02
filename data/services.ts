@@ -93,13 +93,13 @@ export const logisticServices: Service[] = [
 export const companyStats: Stat[] = [
   {
     id: 'years',
-    value: '15+',
+    value: '5+',
     label: 'Años de experiencia',
     icon: 'calendar',
   },
   {
     id: 'shipments',
-    value: '1M+',
+    value: '1K+',
     label: 'Envíos mensuales',
     icon: 'package',
   },
@@ -110,10 +110,10 @@ export const companyStats: Stat[] = [
     icon: 'map',
   },
   {
-    id: 'clients',
-    value: '5,000+',
-    label: 'Clientes activos',
-    icon: 'users',
+    id: 'support',
+    value: '24/7',
+    label: 'Soporte disponible',
+    icon: 'headphones',
   },
 ]
 

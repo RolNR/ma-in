@@ -5,7 +5,7 @@
 // Información de la empresa
 export const COMPANY = {
   name: 'MA-IN',
-  fullName: 'MA-IN Logística y Servicios',
+  fullName: 'Grupo MA-IN',
   tagline: 'Soluciones integrales de logística',
   description: 'Empresa mexicana líder en soluciones de logística, rastreo, empaque y comercio.',
   email: 'contacto@ma-in.mx',
@@ -91,8 +91,6 @@ export const MAIN_NAV = [
 // Navegación de divisiones
 export const DIVISION_NAV = {
   logistik: [
-    { label: 'Servicios', href: ROUTES.logistik.services },
-    { label: 'Cobertura', href: ROUTES.logistik.coverage },
     { label: 'Proceso', href: ROUTES.logistik.process },
     { label: 'Rastrear envío', href: ROUTES.logistik.trackShipment },
   ],
@@ -132,6 +130,4 @@ export const FOOTER_NAV = {
 export const SOCIAL_LINKS = [
   { name: 'Facebook', href: 'https://facebook.com/main', icon: 'facebook' },
   { name: 'Instagram', href: 'https://instagram.com/main', icon: 'instagram' },
-  { name: 'LinkedIn', href: 'https://linkedin.com/company/main', icon: 'linkedin' },
-  { name: 'Twitter', href: 'https://twitter.com/main', icon: 'twitter' },
 ] as const

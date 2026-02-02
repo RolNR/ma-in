@@ -31,8 +31,8 @@ export default function HomePage() {
         subtitle="MA-IN Logística"
         description="Conectamos tu empresa con todo México. Servicios de transporte, rastreo, empaque y comercio electrónico en una sola plataforma."
         primaryAction={{
-          label: 'Conocer servicios',
-          href: ROUTES.logistik.services,
+          label: 'Conocer Logistik',
+          href: ROUTES.logistik.main,
         }}
         secondaryAction={{
           label: 'Rastrear paquete',
@@ -62,7 +62,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href={ROUTES.logistik.services}
+              href={ROUTES.logistik.process}
               className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors group"
             >
               <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -70,9 +70,9 @@ export default function HomePage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                  Nuestros servicios
+                  Proceso de envío
                 </h3>
-                <p className="text-sm text-gray-500">Ver opciones</p>
+                <p className="text-sm text-gray-500">Cómo funciona</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </Link>
@@ -169,8 +169,8 @@ export default function HomePage() {
           href: ROUTES.support.contact,
         }}
         secondaryAction={{
-          label: 'Ver servicios',
-          href: ROUTES.logistik.services,
+          label: 'Conocer proceso',
+          href: ROUTES.logistik.process,
         }}
         variant="centered"
         background="gradient"

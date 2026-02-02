@@ -24,7 +24,7 @@ export const divisions: Division[] = [
       'Cobertura nacional',
       'Entregas programadas',
       'Rastreo en tiempo real',
-      'Logística inversa',
+      'Aliados estratégicos',
     ],
   },
   {
@@ -97,10 +97,10 @@ export const divisionDetails = {
         icon: 'map-pin',
       },
       {
-        id: 'logistica-inversa',
-        title: 'Logística Inversa',
-        description: 'Gestión de devoluciones y recolección de productos.',
-        icon: 'refresh-cw',
+        id: 'aliados-estrategicos',
+        title: 'Aliados Estratégicos',
+        description: 'Trabajamos con las mejores paqueterías: UPS, DHL, Estafeta y FedEx.',
+        icon: 'handshake',
       },
     ],
     coverage: {
@@ -139,15 +139,9 @@ export const divisionDetails = {
     ],
     trackingFeatures: [
       {
-        id: 'tiempo-real',
-        title: 'Rastreo en Tiempo Real',
-        description: 'Visualiza la ubicación exacta de tu envío en cualquier momento.',
-        icon: 'map-pin',
-      },
-      {
         id: 'notificaciones',
-        title: 'Notificaciones Automáticas',
-        description: 'Recibe alertas por email o SMS en cada etapa del envío.',
+        title: 'Notificaciones por Email',
+        description: 'Recibe alertas por correo electrónico en cada etapa del envío.',
         icon: 'bell',
       },
       {
@@ -161,18 +155,6 @@ export const divisionDetails = {
         title: 'Multi-envío',
         description: 'Rastrea múltiples paquetes simultáneamente.',
         icon: 'layers',
-      },
-      {
-        id: 'api',
-        title: 'API de Integración',
-        description: 'Integra el rastreo directamente en tu sistema.',
-        icon: 'code',
-      },
-      {
-        id: 'reportes',
-        title: 'Reportes y Analytics',
-        description: 'Obtén reportes detallados de rendimiento de envíos.',
-        icon: 'bar-chart',
       },
     ],
     trackingStatuses: [

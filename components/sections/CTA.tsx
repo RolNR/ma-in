@@ -69,7 +69,7 @@ export function CTA({
                   size="lg"
                   className={cn(
                     background === 'primary' || background === 'gradient'
-                      ? 'border-white text-white hover:bg-white hover:text-primary'
+                      ? 'border-white text-white hover:bg-white hover:!text-primary'
                       : ''
                   )}
                 >
@@ -111,7 +111,7 @@ export function CTA({
                   size="lg"
                   className={cn(
                     background === 'primary' || background === 'gradient'
-                      ? 'border-white text-white hover:bg-white hover:text-primary'
+                      ? 'border-white text-white hover:bg-white hover:!text-primary'
                       : ''
                   )}
                 >
@@ -156,7 +156,7 @@ export function CTA({
                   size="lg"
                   className={cn(
                     background === 'primary' || background === 'gradient'
-                      ? 'border-white text-white hover:bg-white hover:text-primary'
+                      ? 'border-white text-white hover:bg-white hover:!text-primary'
                       : ''
                   )}
                 >

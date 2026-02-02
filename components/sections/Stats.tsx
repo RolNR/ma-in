@@ -4,6 +4,7 @@ import {
   Package,
   Map,
   Users,
+  Headphones,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -25,6 +26,7 @@ const iconMap: Record<string, LucideIcon> = {
   package: Package,
   map: Map,
   users: Users,
+  headphones: Headphones,
 }
 
 export function Stats({ stats, variant = 'default', columns = 4 }: StatsProps) {
