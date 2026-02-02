@@ -128,6 +128,6 @@ export const FOOTER_NAV = {
 
 // Redes sociales
 export const SOCIAL_LINKS = [
-  { name: 'Facebook', href: 'https://facebook.com/main', icon: 'facebook' },
-  { name: 'Instagram', href: 'https://instagram.com/main', icon: 'instagram' },
+  { name: 'Facebook', href: 'https://facebook.com/grupo.main', icon: 'facebook' },
+  { name: 'Instagram', href: 'https://instagram.com/grupo.main', icon: 'instagram' },
 ] as const
