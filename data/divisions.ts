@@ -45,16 +45,16 @@ export const divisions: Division[] = [
   {
     id: 'market',
     name: 'MA-IN Market',
-    tagline: 'Tienda y menú',
-    description: 'Consulta nuestro menú y productos disponibles escaneando el código QR.',
+    tagline: 'Tienda gourmet & experiencia',
+    description: 'Alimentos selectos, frescos y de temporada de todo el mundo. Una experiencia que fusiona tienda gourmet, bar, restaurante y espacios de convivencia.',
     icon: 'shopping-cart',
     href: ROUTES.market.main,
     color: 'accent',
     features: [
-      'Menú digital',
-      'Código QR',
-      'Productos disponibles',
-      'Fácil acceso',
+      'Productos gourmet e importados',
+      'Vinos, licores y orgánicos',
+      'Barras de alimentos y bebidas',
+      'Espacios de convivencia',
     ],
   },
 ]
@@ -235,8 +235,8 @@ export const divisionDetails = {
   },
   market: {
     hero: {
-      title: 'MA-IN Market',
-      subtitle: 'Escanea el código QR para ver nuestro menú.',
+      title: 'Tu destino gourmet en Cuernavaca',
+      subtitle: 'Alimentos selectos, frescos y de temporada. Vinos, licores, orgánicos y más.',
     },
   },
 }

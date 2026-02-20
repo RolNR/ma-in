@@ -15,13 +15,13 @@ export const COMPANY = {
 
 // Ubicación física
 export const LOCATION = {
-  address: 'Av. San Diego 426, zona 1',
-  colony: 'Lomas de Vista Hermosa',
+  address: 'Av. San Diego 502-Local 1, zona 1',
+  colony: 'Vista Hermosa',
   postalCode: '62290',
   city: 'Cuernavaca',
   state: 'Morelos',
   country: 'México',
-  fullAddress: 'Av. San Diego 426, zona 1, Lomas de Vista Hermosa, 62290 Cuernavaca, Morelos, México',
+  fullAddress: 'Av. San Diego 502-Local 1, Vista Hermosa, 62290 Cuernavaca, Morelos, México',
   coordinates: {
     lat: 18.9261,
     lng: -99.2214,
