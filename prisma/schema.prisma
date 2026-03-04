@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// CARRIERS
+// ─────────────────────────────────────────────
+model Carrier {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(50)
+  code      String      @unique @db.VarChar(10)
+  active    Boolean     @default(true)
+  shipments Shipment[]
+  imports   CsvImport[]
+
+  @@map("carriers")
+}
+
+// ─────────────────────────────────────────────
+// CLIENTS (empresariales)
+// ─────────────────────────────────────────────
+model Client {
+  id          Int        @id @default(autoincrement())
+  companyName String     @map("company_name") @db.VarChar(200)
+  rfc         String?    @db.VarChar(13)
+  email       String?    @db.VarChar(100)
+  phone       String?    @db.VarChar(20)
+  contactName String?    @map("contact_name") @db.VarChar(100)
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  users       User[]
+  shipments   Shipment[]
+  batches     Batch[]
+
+  @@map("clients")
+}
+
+// ─────────────────────────────────────────────
+// USERS (empleados MA-IN + usuarios empresariales)
+// ─────────────────────────────────────────────
+enum UserRole {
+  admin
+  operator
+  client
+}
+
+model User {
+  id           Int             @id @default(autoincrement())
+  name         String          @db.VarChar(100)
+  email        String          @unique @db.VarChar(100)
+  passwordHash String          @map("password_hash") @db.VarChar(255)
+  role         UserRole        @default(operator)
+  clientId     Int?            @map("client_id")
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  client       Client?         @relation(fields: [clientId], references: [id])
+  shipments    Shipment[]
+  events       ShipmentEvent[]
+  batches      Batch[]
+  imports      CsvImport[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// BATCHES (lotes para envíos masivos)
+// ─────────────────────────────────────────────
+model Batch {
+  id          String     @id @default(uuid())
+  clientId    Int?       @map("client_id")
+  createdBy   Int?       @map("created_by")
+  description String?    @db.VarChar(200)
+  guideCount  Int        @default(0) @map("guide_count")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  client      Client?    @relation(fields: [clientId], references: [id])
+  user        User?      @relation(fields: [createdBy], references: [id])
+  shipments   Shipment[]
+
+  @@map("batches")
+}
+
+// ─────────────────────────────────────────────
+// SHIPMENTS (tabla principal — reemplaza Knack)
+// ─────────────────────────────────────────────
+enum ShipmentStatus {
+  PENDIENTE
+  EN_RUTA
+  EN_PROCESO_ENTREGA
+  ENTREGADO
+  ERRONEA
+  CADUCADA
+  SIN_UTILIZAR
+}
+
+model Shipment {
+  id              String         @id @default(uuid())
+  trackingCode    String         @unique @map("tracking_code") @db.VarChar(20)
+  carrierId       Int            @map("carrier_id")
+  clientId        Int?           @map("client_id")
+  createdBy       Int?           @map("created_by")
+  batchId         String?        @map("batch_id")
+
+  // Clasificación
+  guideType       String?        @map("guide_type") @db.VarChar(20)
+  folioInterno    String?        @map("folio_interno") @db.VarChar(50)
+  externalGuideNo String?        @map("external_guide_no") @db.VarChar(50)
+
+  // Remitente
+  senderName      String?        @map("sender_name") @db.VarChar(200)
+  originStreet    String?        @map("origin_street") @db.VarChar(200)
+  originCity      String?        @map("origin_city") @db.VarChar(100)
+  originState     String?        @map("origin_state") @db.VarChar(100)
+  originPostal    String?        @map("origin_postal") @db.VarChar(10)
+
+  // Consignatario
+  recipientName   String?        @map("recipient_name") @db.VarChar(200)
+  destZone        String?        @map("dest_zone") @db.VarChar(100)
+  destAbbr        String?        @map("dest_abbr") @db.VarChar(10)
+  destStreet      String?        @map("dest_street") @db.VarChar(200)
+  destCity        String?        @map("dest_city") @db.VarChar(100)
+  destState       String?        @map("dest_state") @db.VarChar(100)
+  destPostal      String?        @map("dest_postal") @db.VarChar(10)
+
+  // Paquete
+  content         String?        @db.VarChar(200)
+  weight          Decimal?       @db.Decimal(8, 2)
+  overweight      Decimal?       @db.Decimal(8, 2)
+
+  // Status
+  status          ShipmentStatus @default(PENDIENTE)
+  receivedBy      String?        @map("received_by") @db.VarChar(200)
+
+  // Extras por carrier (campos específicos que no aplican a todos)
+  carrierMetadata Json?          @map("carrier_metadata")
+
+  shipmentDate    DateTime       @default(now()) @map("shipment_date") @db.Date
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  carrier         Carrier          @relation(fields: [carrierId], references: [id])
+  client          Client?          @relation(fields: [clientId], references: [id])
+  createdByUser   User?            @relation(fields: [createdBy], references: [id])
+  batch           Batch?           @relation(fields: [batchId], references: [id])
+  events          ShipmentEvent[]
+  evidence        ShipmentEvidence[]
+
+  @@index([trackingCode])
+  @@index([clientId])
+  @@index([status])
+  @@index([shipmentDate])
+  @@map("shipments")
+}
+
+// ─────────────────────────────────────────────
+// SHIPMENT EVENTS (historial de estatus)
+// ─────────────────────────────────────────────
+model ShipmentEvent {
+  id          Int      @id @default(autoincrement())
+  shipmentId  String   @map("shipment_id")
+  status      String   @db.VarChar(50)
+  description String?
+  location    String?  @db.VarChar(100)
+  updatedBy   Int?     @map("updated_by")
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+  shipment    Shipment @relation(fields: [shipmentId], references: [id])
+  user        User?    @relation(fields: [updatedBy], references: [id])
+
+  @@index([shipmentId])
+  @@map("shipment_events")
+}
+
+// ─────────────────────────────────────────────
+// SHIPMENT EVIDENCE (foto / firma de entrega)
+// ─────────────────────────────────────────────
+model ShipmentEvidence {
+  id         Int      @id @default(autoincrement())
+  shipmentId String   @map("shipment_id")
+  type       String   @db.VarChar(20) // 'photo' | 'signature'
+  fileUrl    String   @map("file_url") @db.VarChar(500)
+  capturedAt DateTime @default(now()) @map("captured_at")
+  shipment   Shipment @relation(fields: [shipmentId], references: [id])
+
+  @@map("shipment_evidence")
+}
+
+// ─────────────────────────────────────────────
+// CSV IMPORTS (log de importaciones)
+// ─────────────────────────────────────────────
+model CsvImport {
+  id         Int      @id @default(autoincrement())
+  carrierId  Int      @map("carrier_id")
+  importedBy Int      @map("imported_by")
+  filename   String   @db.VarChar(200)
+  totalRows  Int      @default(0) @map("total_rows")
+  okRows     Int      @default(0) @map("ok_rows")
+  errorRows  Int      @default(0) @map("error_rows")
+  status     String   @db.VarChar(20) // 'completed' | 'partial' | 'failed'
+  errors     Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  carrier    Carrier  @relation(fields: [carrierId], references: [id])
+  user       User     @relation(fields: [importedBy], references: [id])
+
+  @@map("csv_imports")
+}

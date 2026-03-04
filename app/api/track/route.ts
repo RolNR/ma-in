@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchShipmentByTrackingNumber } from '@/lib/knack'
+import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const trackingNumber = searchParams.get('trackingNumber')
+  const trackingNumber = request.nextUrl.searchParams.get('trackingNumber')
 
   if (!trackingNumber) {
     return NextResponse.json(
@@ -20,7 +19,37 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const shipment = await searchShipmentByTrackingNumber(trackingNumber)
+    const shipment = await db.shipment.findUnique({
+      where: { trackingCode: trackingNumber },
+      select: {
+        trackingCode: true,
+        status:       true,
+        guideType:    true,
+        senderName:   true,
+        originCity:   true,
+        originState:  true,
+        recipientName: true,
+        destZone:     true,
+        destCity:     true,
+        destState:    true,
+        destAbbr:     true,
+        content:      true,
+        receivedBy:   true,
+        shipmentDate: true,
+        carrier: {
+          select: { name: true },
+        },
+        events: {
+          orderBy: { occurredAt: 'desc' },
+          select: {
+            status:      true,
+            description: true,
+            location:    true,
+            occurredAt:  true,
+          },
+        },
+      },
+    })
 
     if (!shipment) {
       return NextResponse.json(
@@ -31,7 +60,20 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       found: true,
-      shipment,
+      shipment: {
+        trackingCode:  shipment.trackingCode,
+        status:        shipment.status,
+        guideType:     shipment.guideType,
+        sender:        shipment.senderName,
+        originCity:    [shipment.originCity, shipment.originState].filter(Boolean).join(', '),
+        destCity:      shipment.destZone ?? [shipment.destCity, shipment.destState].filter(Boolean).join(', '),
+        destAbbr:      shipment.destAbbr,
+        receivedBy:    shipment.receivedBy,
+        content:       shipment.content,
+        date:          shipment.shipmentDate,
+        carrier:       shipment.carrier.name,
+        events:        shipment.events,
+      },
     })
   } catch (error) {
     console.error('Error searching shipment:', error)
