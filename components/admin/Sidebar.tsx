@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Guías', href: '/admin/guias', icon: Package },
   { label: 'Importar CSV', href: '/admin/importar', icon: Upload, disabled: true },
-  { label: 'Clientes', href: '/admin/clientes', icon: Users, disabled: true },
+  { label: 'Clientes', href: '/admin/clientes', icon: Users },
 ]
 
 interface SidebarProps {

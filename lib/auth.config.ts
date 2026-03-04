@@ -9,14 +9,25 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user
-      const isOnAdmin = request.nextUrl.pathname.startsWith('/admin')
-      if (isOnAdmin) return isLoggedIn
+      const role = (auth?.user as { role?: string })?.role
+      const { pathname } = request.nextUrl
+
+      if (!isLoggedIn) return false
+
+      if (pathname.startsWith('/admin')) {
+        if (role === 'client') return Response.redirect(new URL('/portal', request.nextUrl))
+        return true
+      }
+
+      if (pathname.startsWith('/portal')) return true
+
       return true
     },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.role = (user as { role?: string }).role
+        token.clientId = (user as { clientId?: number }).clientId
       }
       return token
     },
@@ -24,6 +35,7 @@ export const authConfig = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.clientId = token.clientId as number | undefined
       }
       return session
     },

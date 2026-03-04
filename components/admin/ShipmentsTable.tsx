@@ -43,7 +43,9 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
           {shipments.map((s) => (
             <tr key={s.id} className="hover:bg-gray-50 transition-colors">
               <td className="py-3 px-4 font-mono text-primary-700 font-medium">
-                {s.trackingCode}
+                <Link href={`/admin/guias/${s.id}`} className="hover:underline">
+                  {s.trackingCode}
+                </Link>
               </td>
               <td className="py-3 px-4 text-gray-700">{s.carrier.name}</td>
               <td className="py-3 px-4 text-gray-700">{s.senderName ?? '—'}</td>

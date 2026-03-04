@@ -43,7 +43,7 @@ export default function LoginPage() {
               <LogIn className="w-6 h-6 text-primary-700" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Panel MA-IN</h1>
-            <p className="text-sm text-gray-500 mt-1">Acceso interno — empleados</p>
+            <p className="text-sm text-gray-500 mt-1">Acceso para empleados y clientes</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

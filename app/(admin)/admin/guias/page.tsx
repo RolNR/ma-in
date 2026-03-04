@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
@@ -68,6 +68,12 @@ export default async function GuiasPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Guías</h1>
           <p className="text-gray-500 mt-1">{total} resultados</p>
         </div>
+        <Link
+          href="/admin/guias/nueva"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Plus className="w-4 h-4" /> Nueva guía
+        </Link>
       </div>
 
       {/* Filtros */}

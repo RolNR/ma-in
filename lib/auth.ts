@@ -32,6 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          clientId: user.clientId ?? undefined,
         }
       },
     }),
@@ -46,6 +47,7 @@ declare module 'next-auth' {
       name: string
       email: string
       role: string
+      clientId?: number
     }
   }
 }

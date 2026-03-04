@@ -115,3 +115,11 @@ export function getInitials(name: string): string {
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 9)
 }
+
+/**
+ * Genera una contraseña aleatoria (excluye caracteres ambiguos: 0, O, I, l, 1)
+ */
+export function generatePassword(length = 10): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
