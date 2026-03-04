@@ -9,6 +9,7 @@ export default async function AdminLayout({
 }) {
   const session = await auth()
   if (!session) redirect('/login')
+  if (session.user.role === 'client') redirect('/portal')
 
   return (
     <div className="flex min-h-screen bg-gray-50">

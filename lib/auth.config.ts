@@ -7,21 +7,8 @@ export const authConfig = {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ auth, request }) {
-      const isLoggedIn = !!auth?.user
-      const role = (auth?.user as { role?: string })?.role
-      const { pathname } = request.nextUrl
-
-      if (!isLoggedIn) return false
-
-      if (pathname.startsWith('/admin')) {
-        if (role === 'client') return Response.redirect(new URL('/portal', request.nextUrl))
-        return true
-      }
-
-      if (pathname.startsWith('/portal')) return true
-
-      return true
+    authorized({ auth }) {
+      return !!auth?.user
     },
     jwt({ token, user }) {
       if (user) {
