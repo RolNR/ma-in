@@ -9,50 +9,56 @@ export const metadata = { title: 'Guías' }
 const PAGE_SIZE = 20
 
 interface PageProps {
-  searchParams: Promise<{
-    status?: string
-    carrier?: string
-    q?: string
-    page?: string
-  }>
-}
-
-async function getCarriers() {
-  return db.carrier.findMany({ where: { active: true }, select: { id: true, name: true } })
+  searchParams: Promise<{ status?: string; q?: string; page?: string }>
 }
 
 export default async function GuiasPage({ searchParams }: PageProps) {
   const params = await searchParams
   const status = params.status || ''
-  const carrierId = params.carrier ? parseInt(params.carrier) : undefined
   const q = params.q || ''
   const page = Math.max(1, parseInt(params.page || '1'))
 
   const where = {
     ...(status ? { status: status as ShipmentStatus } : {}),
-    ...(carrierId ? { carrierId } : {}),
-    ...(q ? { trackingCode: { contains: q, mode: 'insensitive' as const } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { trackingCode: { contains: q, mode: 'insensitive' as const } },
+            { folioInterno: { contains: q, mode: 'insensitive' as const } },
+            { senderName: { contains: q, mode: 'insensitive' as const } },
+            { recipientName: { contains: q, mode: 'insensitive' as const } },
+            { destCity: { contains: q, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}),
   }
 
-  const [shipments, total, carriers] = await Promise.all([
+  const [shipments, total] = await Promise.all([
     db.shipment.findMany({
       where,
-      include: { carrier: { select: { name: true } } },
+      select: {
+        id: true,
+        trackingCode: true,
+        batchId: true,
+        senderName: true,
+        destCity: true,
+        destState: true,
+        status: true,
+        shipmentDate: true,
+        carrier: { select: { name: true } },
+      },
       orderBy: { shipmentDate: 'desc' },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
     db.shipment.count({ where }),
-    getCarriers(),
   ])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // Build query string helper
   function buildHref(overrides: Record<string, string | undefined>) {
     const p = new URLSearchParams()
     if (status) p.set('status', status)
-    if (carrierId) p.set('carrier', String(carrierId))
     if (q) p.set('q', q)
     p.set('page', String(page))
     Object.entries(overrides).forEach(([k, v]) => {
@@ -81,11 +87,12 @@ export default async function GuiasPage({ searchParams }: PageProps) {
         <input
           name="q"
           defaultValue={q}
-          placeholder="Buscar por código..."
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-56"
+          placeholder="Buscar código, empresa, ciudad..."
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-64"
         />
 
         <select
+          key={`status-${status}`}
           name="status"
           defaultValue={status}
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -100,17 +107,6 @@ export default async function GuiasPage({ searchParams }: PageProps) {
           <option value="SIN_UTILIZAR">Sin utilizar</option>
         </select>
 
-        <select
-          name="carrier"
-          defaultValue={carrierId ? String(carrierId) : ''}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
-          <option value="">Todos los carriers</option>
-          {carriers.map((c) => (
-            <option key={c.id} value={String(c.id)}>{c.name}</option>
-          ))}
-        </select>
-
         <button
           type="submit"
           className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
@@ -118,7 +114,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
           Filtrar
         </button>
 
-        {(status || carrierId || q) && (
+        {(status || q) && (
           <Link
             href="/admin/guias"
             className="px-4 py-2 text-gray-600 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
@@ -136,9 +132,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
       {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">
-            Página {page} de {totalPages}
-          </p>
+          <p className="text-sm text-gray-500">Página {page} de {totalPages}</p>
           <div className="flex gap-2">
             {page > 1 && (
               <Link

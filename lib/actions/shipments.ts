@@ -2,13 +2,22 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { customAlphabet } from 'nanoid'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
-type CreateShipmentState =
+// Alfanumérico sin caracteres confusos (0/O, 1/I)
+const genCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 12)
+
+export type CreateShipmentState =
   | { status: 'idle' }
   | { status: 'error'; message: string }
+  | { status: 'success'; count: number; batchId?: string; firstId?: string }
+
+function str(fd: FormData, key: string): string | null {
+  return (fd.get(key) as string)?.trim() || null
+}
 
 export async function createShipment(
   prevState: CreateShipmentState,
@@ -17,73 +26,91 @@ export async function createShipment(
   const session = await auth()
   if (!session) return { status: 'error', message: 'No autenticado.' }
 
-  const trackingCode = (formData.get('trackingCode') as string)?.trim().toUpperCase()
   const carrierId = parseInt(formData.get('carrierId') as string)
-  const status = (formData.get('status') as ShipmentStatus) || 'PENDIENTE'
-  const clientId = formData.get('clientId') ? parseInt(formData.get('clientId') as string) : null
-
-  const senderName = (formData.get('senderName') as string)?.trim() || null
-  const originCity = (formData.get('originCity') as string)?.trim() || null
-  const originState = (formData.get('originState') as string)?.trim() || null
-
-  const recipientName = (formData.get('recipientName') as string)?.trim() || null
-  const destCity = (formData.get('destCity') as string)?.trim() || null
-  const destState = (formData.get('destState') as string)?.trim() || null
-  const destPostal = (formData.get('destPostal') as string)?.trim() || null
-
-  const content = (formData.get('content') as string)?.trim() || null
-  const weight = formData.get('weight') ? parseFloat(formData.get('weight') as string) : null
-  const shipmentDate = formData.get('shipmentDate')
-    ? new Date(formData.get('shipmentDate') as string)
-    : new Date()
-
-  if (!trackingCode) return { status: 'error', message: 'El código de guía es requerido.' }
   if (!carrierId || isNaN(carrierId)) return { status: 'error', message: 'Selecciona un carrier.' }
 
+  const quantity = Math.min(50, Math.max(1, parseInt(formData.get('quantity') as string || '1')))
+  const status: ShipmentStatus = 'PENDIENTE'
+  const clientId = formData.get('clientId') ? parseInt(formData.get('clientId') as string) : null
+  const createdBy = parseInt(session.user.id)
+
+  const data = {
+    carrierId,
+    clientId,
+    createdBy,
+    status,
+    guideType:      str(formData, 'guideType'),
+    senderName:     str(formData, 'senderName'),
+    originStreet:   str(formData, 'originStreet'),
+    originCity:     str(formData, 'originCity'),
+    originState:    str(formData, 'originState'),
+    originPostal:   str(formData, 'originPostal'),
+    recipientName:  str(formData, 'recipientName'),
+    destStreet:     str(formData, 'destStreet'),
+    destCity:       str(formData, 'destCity'),
+    destState:      str(formData, 'destState'),
+    destPostal:     str(formData, 'destPostal'),
+    destAbbr:       str(formData, 'destAbbr'),
+    content:        str(formData, 'content'),
+    weight:         formData.get('weight') ? parseFloat(formData.get('weight') as string) : undefined,
+    shipmentDate:   formData.get('shipmentDate') ? new Date(formData.get('shipmentDate') as string) : new Date(),
+  }
+
+  // Generar códigos únicos
+  async function uniqueCode(): Promise<string> {
+    for (let i = 0; i < 10; i++) {
+      const code = genCode()
+      const exists = await db.shipment.findUnique({ where: { trackingCode: code } })
+      if (!exists) return code
+    }
+    throw new Error('No se pudo generar un código único.')
+  }
+
   try {
-    const existing = await db.shipment.findUnique({ where: { trackingCode } })
-    if (existing) return { status: 'error', message: 'Ya existe una guía con ese código de rastreo.' }
-
-    const createdBy = parseInt(session.user.id)
-
-    const shipment = await db.$transaction(async (tx) => {
-      const s = await tx.shipment.create({
-        data: {
-          trackingCode,
-          carrierId,
-          clientId,
-          createdBy,
-          status,
-          senderName,
-          originCity,
-          originState,
-          recipientName,
-          destCity,
-          destState,
-          destPostal,
-          content,
-          weight: weight ?? undefined,
-          shipmentDate,
-        },
+    if (quantity === 1) {
+      const trackingCode = await uniqueCode()
+      const shipment = await db.$transaction(async (tx) => {
+        const s = await tx.shipment.create({ data: { ...data, trackingCode } })
+        if (status !== 'PENDIENTE') {
+          await tx.shipmentEvent.create({
+            data: { shipmentId: s.id, status, description: 'Guía creada', updatedBy: createdBy },
+          })
+        }
+        return s
       })
+      redirect(`/admin/guias/${shipment.id}`)
+    }
 
+    // Lote (quantity > 1)
+    const codes = await Promise.all(Array.from({ length: quantity }, () => uniqueCode()))
+
+    const batch = await db.$transaction(async (tx) => {
+      const b = await tx.batch.create({
+        data: { clientId, createdBy, guideCount: quantity },
+      })
+      await tx.shipment.createMany({
+        data: codes.map(trackingCode => ({ ...data, trackingCode, batchId: b.id })),
+      })
       if (status !== 'PENDIENTE') {
-        await tx.shipmentEvent.create({
-          data: {
+        const created = await tx.shipment.findMany({
+          where: { batchId: b.id },
+          select: { id: true },
+        })
+        await tx.shipmentEvent.createMany({
+          data: created.map(s => ({
             shipmentId: s.id,
             status,
             description: 'Guía creada',
             updatedBy: createdBy,
-          },
+          })),
         })
       }
-
-      return s
+      return b
     })
 
-    redirect(`/admin/guias/${shipment.id}`)
+    revalidatePath('/admin/guias')
+    return { status: 'success', count: quantity, batchId: batch.id }
   } catch (error: unknown) {
-    // Re-throw Next.js redirect/notFound errors
     if ((error as { digest?: string }).digest) throw error
     console.error('[createShipment]', error)
     return { status: 'error', message: 'Error al crear la guía. Intenta de nuevo.' }

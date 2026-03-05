@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { ShipmentTimeline } from '@/components/admin/ShipmentTimeline'
 import { UpdateStatusForm } from '@/components/admin/UpdateStatusForm'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
 interface PageProps {
@@ -58,8 +58,15 @@ export default async function GuiaDetailPage({ params }: PageProps) {
               </Link>
             )}
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
             <StatusBadge status={shipment.status as ShipmentStatus} />
+            <Link
+              href={`/imprimir/${shipment.id}`}
+              target="_blank"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Printer className="w-4 h-4" /> Imprimir guía
+            </Link>
           </div>
         </div>
       </div>

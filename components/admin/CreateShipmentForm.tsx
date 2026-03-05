@@ -1,21 +1,16 @@
 'use client'
 
-import { useFormState } from 'react-dom'
-import { createShipment } from '@/lib/actions/shipments'
+import { useFormState, useFormStatus } from 'react-dom'
+import { useRef, useState } from 'react'
+import { createShipment, type CreateShipmentState } from '@/lib/actions/shipments'
+import { CheckCircle2, Loader2, Package, MapPin } from 'lucide-react'
+import Link from 'next/link'
 
 interface Carrier { id: number; name: string }
-interface Client { id: number; companyName: string }
+interface Client  { id: number; companyName: string }
+interface Props   { carriers: Carrier[]; clients: Client[] }
 
-interface CreateShipmentFormProps {
-  carriers: Carrier[]
-  clients: Client[]
-}
-
-const initialState = { status: 'idle' as const }
-
-const inputClass =
-  'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500'
-
+const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500'
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -26,48 +21,179 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function CreateShipmentForm({ carriers, clients }: CreateShipmentFormProps) {
-  const [state, formAction] = useFormState(createShipment, initialState)
+function SubmitButton({ quantity }: { quantity: number }) {
+  const { pending } = useFormStatus()
+  const label = quantity > 1 ? `Crear ${quantity} guías` : 'Crear guía'
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm transition-colors"
+    >
+      {pending ? <><Loader2 className="w-4 h-4 animate-spin" /> Creando...</> : label}
+    </button>
+  )
+}
+
+function SuccessView({ state }: { state: Extract<CreateShipmentState, { status: 'success' }> }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border-2 border-green-400 bg-green-50 p-6">
+        <div className="flex items-center gap-2 text-green-700 font-semibold text-lg mb-2">
+          <CheckCircle2 className="w-5 h-5" />
+          {state.count === 1 ? 'Guía creada' : `${state.count} guías creadas`}
+        </div>
+        <p className="text-sm text-green-700">
+          Los códigos de rastreo fueron generados automáticamente.
+        </p>
+      </div>
+      <div className="flex gap-3">
+        <Link
+          href="/admin/guias"
+          className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors"
+        >
+          Ver en guías
+        </Link>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg text-sm hover:bg-gray-50 transition-colors"
+        >
+          Crear más
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── CP Lookup ────────────────────────────────────────────────────────────────
+
+interface CPResult { city: string; state: string; abbr: string }
+
+async function lookupCP(cp: string): Promise<CPResult | null> {
+  try {
+    const res = await fetch(`https://api.zippopotam.us/MX/${cp}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    const place = data.places?.[0]
+    if (!place) return null
+    return {
+      city: place['place name'] ?? '',
+      state: place['state'] ?? '',
+      abbr: place['state abbreviation'] ?? '',
+    }
+  } catch {
+    return null
+  }
+}
+
+// ─── CP Input with autocomplete ───────────────────────────────────────────────
+
+interface CPInputProps {
+  name: string
+  cityRef: React.RefObject<HTMLInputElement | null>
+  stateRef: React.RefObject<HTMLInputElement | null>
+  abbrRef?: React.RefObject<HTMLInputElement | null>
+}
+
+function CPInput({ name, cityRef, stateRef, abbrRef }: CPInputProps) {
+  const [loading, setLoading] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cp = e.target.value.trim()
+    if (timer.current) clearTimeout(timer.current)
+    if (cp.length !== 5) return
+    timer.current = setTimeout(async () => {
+      setLoading(true)
+      const result = await lookupCP(cp)
+      setLoading(false)
+      if (!result) return
+      if (cityRef.current)  cityRef.current.value  = result.city
+      if (stateRef.current) stateRef.current.value = result.state
+      if (abbrRef?.current) abbrRef.current.value  = result.abbr
+    }, 400)
+  }
+
+  return (
+    <div className="relative">
+      <input
+        name={name}
+        className={inputClass}
+        placeholder="Código postal"
+        maxLength={10}
+        onChange={handleChange}
+      />
+      {loading && (
+        <MapPin className="absolute right-3 top-2.5 w-4 h-4 text-primary-500 animate-pulse" />
+      )}
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function CreateShipmentForm({ carriers, clients }: Props) {
+  const [state, formAction] = useFormState(createShipment, { status: 'idle' })
+  const [quantity, setQuantity] = useState(1)
+
+  // Refs para autofill de CP
+  const originCityRef  = useRef<HTMLInputElement>(null)
+  const originStateRef = useRef<HTMLInputElement>(null)
+  const destCityRef    = useRef<HTMLInputElement>(null)
+  const destStateRef   = useRef<HTMLInputElement>(null)
+  const destAbbrRef    = useRef<HTMLInputElement>(null)
+
+  if (state.status === 'success') return <SuccessView state={state} />
 
   return (
     <form action={formAction} className="space-y-8">
-      {/* Guía */}
+
+      {/* ── Guía ─────────────────────────────────────────────── */}
       <div>
         <SectionTitle>Guía</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
           <div>
-            <label className={labelClass}>
-              Código de rastreo <span className="text-red-500">*</span>
-            </label>
-            <input name="trackingCode" required className={inputClass} placeholder="Ej: 1Z999AA10123456784" />
+            <label className={labelClass}>Tipo <span className="text-red-500">*</span></label>
+            <select name="guideType" defaultValue="EXPRESS" className={inputClass}>
+              <option value="EXPRESS">Express</option>
+              <option value="ECONOMY">Economy</option>
+            </select>
           </div>
+
           <div>
-            <label className={labelClass}>
-              Carrier <span className="text-red-500">*</span>
-            </label>
+            <label className={labelClass}>Carrier <span className="text-red-500">*</span></label>
             <select name="carrierId" required className={inputClass}>
               <option value="">Selecciona...</option>
-              {carriers.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
+
           <div>
-            <label className={labelClass}>Status</label>
-            <select name="status" defaultValue="PENDIENTE" className={inputClass}>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="EN_RUTA">En ruta</option>
-              <option value="EN_PROCESO_ENTREGA">En proceso de entrega</option>
-              <option value="ENTREGADO">Entregado</option>
-              <option value="ERRONEA">Errónea</option>
-              <option value="CADUCADA">Caducada</option>
-              <option value="SIN_UTILIZAR">Sin utilizar</option>
-            </select>
+            <label className={labelClass}>
+              Cantidad
+              <span className="ml-1 text-xs text-gray-400">(máx. 50)</span>
+            </label>
+            <input
+              name="quantity"
+              type="number"
+              min="1"
+              max="50"
+              value={quantity}
+              onChange={e => setQuantity(Math.min(50, Math.max(1, parseInt(e.target.value) || 1)))}
+              className={inputClass}
+            />
           </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-fit">
+          <Package className="w-3.5 h-3.5" />
+          Código de rastreo y status se asignan automáticamente
         </div>
       </div>
 
-      {/* Cliente */}
+      {/* ── Cliente ───────────────────────────────────────────── */}
       <div>
         <SectionTitle>Cliente</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -75,34 +201,47 @@ export function CreateShipmentForm({ carriers, clients }: CreateShipmentFormProp
             <label className={labelClass}>Cliente <span className="text-gray-400">(opcional)</span></label>
             <select name="clientId" className={inputClass}>
               <option value="">Sin asignar</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.companyName}</option>
-              ))}
+              {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
             </select>
           </div>
         </div>
       </div>
 
-      {/* Remitente */}
+      {/* ── Remitente ─────────────────────────────────────────── */}
       <div>
         <SectionTitle>Remitente</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nombre</label>
             <input name="senderName" className={inputClass} placeholder="Nombre del remitente" />
           </div>
           <div>
+            <label className={labelClass}>Calle y número</label>
+            <input name="originStreet" className={inputClass} placeholder="Av. Reforma 123, Col. Centro" />
+          </div>
+          <div>
+            <label className={labelClass}>
+              C.P.
+              <span className="ml-1 text-xs text-primary-500">→ autorrellena ciudad y estado</span>
+            </label>
+            <CPInput
+              name="originPostal"
+              cityRef={originCityRef}
+              stateRef={originStateRef}
+            />
+          </div>
+          <div>
             <label className={labelClass}>Ciudad</label>
-            <input name="originCity" className={inputClass} placeholder="Ciudad" />
+            <input ref={originCityRef} name="originCity" className={inputClass} placeholder="Ciudad" />
           </div>
           <div>
             <label className={labelClass}>Estado</label>
-            <input name="originState" className={inputClass} placeholder="Estado" />
+            <input ref={originStateRef} name="originState" className={inputClass} placeholder="Estado" />
           </div>
         </div>
       </div>
 
-      {/* Consignatario */}
+      {/* ── Consignatario ─────────────────────────────────────── */}
       <div>
         <SectionTitle>Consignatario</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -111,21 +250,40 @@ export function CreateShipmentForm({ carriers, clients }: CreateShipmentFormProp
             <input name="recipientName" className={inputClass} placeholder="Nombre del destinatario" />
           </div>
           <div>
+            <label className={labelClass}>Calle y número</label>
+            <input name="destStreet" className={inputClass} placeholder="Av. Domingo Díez 910, Col. Lomas" />
+          </div>
+          <div>
+            <label className={labelClass}>
+              C.P.
+              <span className="ml-1 text-xs text-primary-500">→ autorrellena ciudad, estado y siglas</span>
+            </label>
+            <CPInput
+              name="destPostal"
+              cityRef={destCityRef}
+              stateRef={destStateRef}
+              abbrRef={destAbbrRef}
+            />
+          </div>
+          <div>
             <label className={labelClass}>Ciudad</label>
-            <input name="destCity" className={inputClass} placeholder="Ciudad" />
+            <input ref={destCityRef} name="destCity" className={inputClass} placeholder="Ciudad" />
           </div>
           <div>
             <label className={labelClass}>Estado</label>
-            <input name="destState" className={inputClass} placeholder="Estado" />
+            <input ref={destStateRef} name="destState" className={inputClass} placeholder="Estado" />
           </div>
           <div>
-            <label className={labelClass}>C.P.</label>
-            <input name="destPostal" className={inputClass} placeholder="Código postal" maxLength={10} />
+            <label className={labelClass}>
+              Siglas destino
+              <span className="ml-1 text-xs text-gray-400">(ej. MOR)</span>
+            </label>
+            <input ref={destAbbrRef} name="destAbbr" className={inputClass} placeholder="MOR" maxLength={10} />
           </div>
         </div>
       </div>
 
-      {/* Paquete */}
+      {/* ── Paquete ───────────────────────────────────────────── */}
       <div>
         <SectionTitle>Paquete</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -154,12 +312,7 @@ export function CreateShipmentForm({ carriers, clients }: CreateShipmentFormProp
       )}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg text-sm transition-colors"
-        >
-          Crear guía
-        </button>
+        <SubmitButton quantity={quantity} />
         <a
           href="/admin/guias"
           className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg text-sm hover:bg-gray-50 transition-colors"
