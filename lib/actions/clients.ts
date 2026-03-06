@@ -3,6 +3,7 @@
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import { generatePassword } from '@/lib/utils'
 
 type CreateClientState =
@@ -141,4 +142,91 @@ export async function toggleClientActive(id: number, active: boolean) {
   })
   revalidatePath(`/admin/clientes/${id}`)
   revalidatePath('/admin/clientes')
+}
+
+// ─── Import from Knack CSV ────────────────────────────────────────────────────
+
+export interface ClientImportRow {
+  companyName: string
+  name: string
+  email: string
+  passwordHash: string
+}
+
+export type ImportClientsState =
+  | { status: 'idle' }
+  | { status: 'success'; imported: number; skipped: number; errors: number }
+  | { status: 'error'; message: string }
+
+export async function importClients(
+  prevState: ImportClientsState,
+  formData: FormData,
+): Promise<ImportClientsState> {
+  const session = await auth()
+  if (!session || session.user.role !== 'admin') {
+    return { status: 'error', message: 'Sin permisos.' }
+  }
+
+  const rawJson = formData.get('rowsJson') as string
+  if (!rawJson) return { status: 'error', message: 'No se recibieron datos.' }
+
+  let rows: ClientImportRow[]
+  try {
+    rows = JSON.parse(rawJson)
+  } catch {
+    return { status: 'error', message: 'Error al procesar los datos.' }
+  }
+
+  if (!rows.length) return { status: 'error', message: 'No hay filas válidas para importar.' }
+
+  // Bulk-check existing emails in User + Client tables
+  const emails = rows.map(r => r.email)
+  const [existingUsers, existingClients] = await Promise.all([
+    db.user.findMany({ where: { email: { in: emails } }, select: { email: true } }),
+    db.client.findMany({ where: { email: { in: emails } }, select: { email: true } }),
+  ])
+  const existingEmails = new Set([
+    ...existingUsers.map(u => u.email),
+    ...existingClients.map(c => c.email).filter(Boolean) as string[],
+  ])
+
+  const toImport = rows.filter(r => !existingEmails.has(r.email))
+  const skipped = rows.length - toImport.length
+
+  if (!toImport.length) {
+    revalidatePath('/admin/clientes')
+    return { status: 'success', imported: 0, skipped, errors: 0 }
+  }
+
+  let imported = 0
+  let errors = 0
+
+  for (const row of toImport) {
+    try {
+      await db.$transaction(async (tx) => {
+        const client = await tx.client.create({
+          data: {
+            companyName: row.companyName,
+            email: row.email,
+            contactName: row.name || null,
+          },
+        })
+        await tx.user.create({
+          data: {
+            name: row.name || row.companyName,
+            email: row.email,
+            passwordHash: row.passwordHash,
+            role: 'client',
+            clientId: client.id,
+          },
+        })
+      })
+      imported++
+    } catch {
+      errors++
+    }
+  }
+
+  revalidatePath('/admin/clientes')
+  return { status: 'success', imported, skipped, errors }
 }

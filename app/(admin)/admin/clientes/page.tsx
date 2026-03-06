@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { ChevronLeft, ChevronRight, Plus, CheckCircle, XCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Upload, CheckCircle, XCircle } from 'lucide-react'
 
 export const metadata = { title: 'Clientes' }
 
@@ -11,6 +12,9 @@ interface PageProps {
 }
 
 export default async function ClientesPage({ searchParams }: PageProps) {
+  const session = await auth()
+  const isAdmin = session?.user.role === 'admin'
+
   const params = await searchParams
   const q = params.q || ''
   const page = Math.max(1, parseInt(params.page || '1'))
@@ -54,12 +58,22 @@ export default async function ClientesPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
           <p className="text-gray-500 mt-1">{total} cliente{total !== 1 ? 's' : ''}</p>
         </div>
-        <Link
-          href="/admin/clientes/nuevo"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Nuevo cliente
-        </Link>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Link
+              href="/admin/clientes/importar"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Upload className="w-4 h-4" /> Importar CSV
+            </Link>
+          )}
+          <Link
+            href="/admin/clientes/nuevo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Nuevo cliente
+          </Link>
+        </div>
       </div>
 
       {/* Filtros */}

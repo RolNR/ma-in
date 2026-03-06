@@ -49,6 +49,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
         archived: true,
         shipmentDate: true,
         carrier: { select: { name: true } },
+        client: { select: { companyName: true } },
       },
       orderBy: { shipmentDate: 'desc' },
       skip: (page - 1) * PAGE_SIZE,

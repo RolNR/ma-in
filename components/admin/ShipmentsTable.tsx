@@ -11,6 +11,7 @@ interface Shipment {
   trackingCode: string
   batchId: string | null
   carrier: { name: string }
+  client: { companyName: string } | null
   senderName: string | null
   destCity: string | null
   destState: string | null
@@ -72,6 +73,7 @@ function BatchRow({ batch }: { batch: Extract<Row, { type: 'batch' }> }) {
           </div>
         </td>
         <td className={`${cell} text-gray-700`}>{first.carrier.name}</td>
+        <td className={`${cell} text-gray-700`}>{first.client?.companyName ?? '—'}</td>
         <td className={`${cell} text-gray-700`}>{first.senderName ?? '—'}</td>
         <td className={`${cell} text-gray-500`}>{dest}</td>
         <td className={cell}>
@@ -89,6 +91,7 @@ function BatchRow({ batch }: { batch: Extract<Row, { type: 'batch' }> }) {
             </Link>
           </td>
           <td className={`${cell} text-gray-700`}>{s.carrier.name}</td>
+          <td className={`${cell} text-gray-700`}>{s.client?.companyName ?? '—'}</td>
           <td className={`${cell} text-gray-700`}>{s.senderName ?? '—'}</td>
           <td className={`${cell} text-gray-500`}>
             {[s.destCity, s.destState].filter(Boolean).join(', ') || '—'}
@@ -126,6 +129,7 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
           <tr className="border-b border-gray-200">
             <th className="text-left py-3 px-4 font-semibold text-gray-600">Código</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-600">Carrier</th>
+            <th className="text-left py-3 px-4 font-semibold text-gray-600">Cliente</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-600">Remitente</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-600">Destino</th>
             <th className="text-left py-3 px-4 font-semibold text-gray-600">Status</th>
@@ -142,6 +146,7 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
                   </Link>
                 </td>
                 <td className={`${cell} text-gray-700`}>{row.shipment.carrier.name}</td>
+                <td className={`${cell} text-gray-700`}>{row.shipment.client?.companyName ?? '—'}</td>
                 <td className={`${cell} text-gray-700`}>{row.shipment.senderName ?? '—'}</td>
                 <td className={`${cell} text-gray-500`}>
                   {[row.shipment.destCity, row.shipment.destState].filter(Boolean).join(', ') || '—'}
