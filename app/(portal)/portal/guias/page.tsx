@@ -114,11 +114,11 @@ export default async function PortalGuiasPage({ searchParams }: PageProps) {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-gray-600">Código</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-600">Carrier</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-600">Remitente</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-600">Destino</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-600 hidden sm:table-cell">Carrier</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-600 hidden md:table-cell">Remitente</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-600 hidden sm:table-cell">Destino</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-600">Status</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-600">Fecha</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-600 hidden md:table-cell">Fecha</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -132,15 +132,15 @@ export default async function PortalGuiasPage({ searchParams }: PageProps) {
                         {s.trackingCode}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-gray-700">{s.carrier.name}</td>
-                    <td className="py-3 px-4 text-gray-700">{s.senderName ?? '—'}</td>
-                    <td className="py-3 px-4 text-gray-500">
+                    <td className="py-3 px-4 text-gray-700 hidden sm:table-cell">{s.carrier.name}</td>
+                    <td className="py-3 px-4 text-gray-700 hidden md:table-cell">{s.senderName ?? '—'}</td>
+                    <td className="py-3 px-4 text-gray-500 hidden sm:table-cell">
                       {[s.destCity, s.destState].filter(Boolean).join(', ') || '—'}
                     </td>
                     <td className="py-3 px-4">
                       <StatusBadge status={s.status as Parameters<typeof StatusBadge>[0]['status']} />
                     </td>
-                    <td className="py-3 px-4 text-gray-500">
+                    <td className="py-3 px-4 text-gray-500 hidden md:table-cell">
                       {new Date(s.shipmentDate).toLocaleDateString('es-MX')}
                     </td>
                   </tr>

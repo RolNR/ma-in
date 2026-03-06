@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge'
 import { ShipmentTimeline } from '@/components/admin/ShipmentTimeline'
 import { UpdateStatusForm } from '@/components/admin/UpdateStatusForm'
 import { ShipmentActions } from '@/components/admin/ShipmentActions'
+import { EvidenceGallery } from '@/components/admin/EvidenceGallery'
 import { ArrowLeft, Printer, MapPin, Package, CalendarDays, User, Building2, ArrowRight, Layers, ArchiveIcon, Navigation } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
@@ -37,6 +38,9 @@ export default async function GuiaDetailPage({ params }: PageProps) {
       events: {
         include: { user: { select: { name: true } } },
         orderBy: { occurredAt: 'desc' },
+      },
+      evidence: {
+        orderBy: { capturedAt: 'asc' },
       },
     },
   })
@@ -240,6 +244,8 @@ export default async function GuiaDetailPage({ params }: PageProps) {
               </div>
             </div>
           )}
+
+          <EvidenceGallery evidence={shipment.evidence} />
 
         </div>
 

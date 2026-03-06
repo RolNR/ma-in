@@ -11,6 +11,13 @@ import type { LucideIcon } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface TrackingEvent {
+  status: string
+  description: string | null
+  location: string | null
+  occurredAt: string
+}
+
 interface TrackingResult {
   trackingCode: string
   status: string
@@ -22,6 +29,7 @@ interface TrackingResult {
   content: string | null
   date: string
   carrier: string
+  events: TrackingEvent[]
 }
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error' | 'not-found'
@@ -194,6 +202,38 @@ function Timeline({ currentStatus }: { currentStatus: string }) {
   )
 }
 
+function EventHistory({ events }: { events: TrackingEvent[] }) {
+  if (events.length === 0) return null
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 mb-4">Historial de movimientos</h3>
+      <ol className="relative border-l-2 border-gray-200 space-y-5 pl-5">
+        {events.map((event, i) => (
+          <li key={i} className="relative">
+            <span className="absolute -left-[25px] top-0.5 w-3 h-3 rounded-full bg-primary-500 border-2 border-white ring-2 ring-primary-100" />
+            <p className="text-xs text-gray-400 mb-0.5">
+              {new Date(event.occurredAt).toLocaleString('es-MX', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}
+            </p>
+            <p className="text-sm font-medium text-gray-800">
+              {event.status.replace(/_/g, ' ')}
+            </p>
+            {event.description && (
+              <p className="text-xs text-gray-500 mt-0.5">{event.description}</p>
+            )}
+            {event.location && (
+              <p className="text-xs text-gray-400 mt-0.5">{event.location}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function TrackingForm() {
@@ -338,7 +378,7 @@ export function TrackingForm() {
           </div>
 
           {/* Timeline or terminal state */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-6">
             {flowStatus ? (
               <Timeline currentStatus={result.status} />
             ) : terminalStatus ? (
@@ -350,6 +390,12 @@ export function TrackingForm() {
                 </div>
               </div>
             ) : null}
+
+            {result.events.length > 0 && (
+              <div className="border-t border-gray-100 pt-5">
+                <EventHistory events={result.events} />
+              </div>
+            )}
           </div>
 
           {/* Reset */}

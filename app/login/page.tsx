@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { LogIn } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,8 +39,23 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-xl mb-4">
-              <LogIn className="w-6 h-6 text-primary-700" />
+            <div className="inline-flex items-center gap-1.5 mb-7">
+              <Image
+                src="/logo.svg"
+                alt="MA-IN"
+                width={90}
+                height={53}
+                priority
+              />
+              <div className="text-left leading-none">
+                <p className="text-2xl font-bold text-gray-800">MA-IN</p>
+                <p
+                  className="text-sm font-bold tracking-[0.22em] text-primary-600 animate-fade-in"
+                  style={{ animationDelay: '0.4s', animationFillMode: 'both', opacity: 0 }}
+                >
+                  TRACK
+                </p>
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Panel MA-IN</h1>
             <p className="text-sm text-gray-500 mt-1">Acceso para empleados y clientes</p>
