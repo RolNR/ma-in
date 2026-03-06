@@ -1,4 +1,5 @@
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
 import { ChevronLeft, ChevronRight, Plus, Archive } from 'lucide-react'
 import Link from 'next/link'
@@ -13,7 +14,8 @@ interface PageProps {
 }
 
 export default async function GuiasPage({ searchParams }: PageProps) {
-  const params = await searchParams
+  const [params, session] = await Promise.all([searchParams, auth()])
+  const isAdmin = session?.user.role === 'admin'
   const status   = params.status   || ''
   const q        = params.q        || ''
   const page     = Math.max(1, parseInt(params.page || '1'))
@@ -149,7 +151,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
 
       {/* Tabla */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <ShipmentsTable shipments={shipments} />
+        <ShipmentsTable shipments={shipments} isAdmin={isAdmin} showArchived={showArchived} />
       </div>
 
       {/* Paginación */}

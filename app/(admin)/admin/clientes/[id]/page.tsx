@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { db } from '@/lib/db'
 import { EditClientForm } from '@/components/admin/EditClientForm'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
+import { ContactsSection } from '@/components/admin/ContactsSection'
 import { toggleClientActive } from '@/lib/actions/clients'
 import { ResetPasswordButton } from '@/components/admin/ResetPasswordButton'
 import { ArrowLeft, Mail, Phone } from 'lucide-react'
@@ -17,20 +18,30 @@ export default async function ClienteDetailPage({ params }: PageProps) {
 
   if (isNaN(clientId)) notFound()
 
-  const client = await db.client.findUnique({
-    where: { id: clientId },
-    include: {
-      users: { select: { id: true, name: true, email: true, role: true, active: true } },
-      shipments: {
-        include: {
-          carrier: { select: { name: true } },
-          client: { select: { companyName: true } },
+  const [client, contacts] = await Promise.all([
+    db.client.findUnique({
+      where: { id: clientId },
+      include: {
+        users: { select: { id: true, name: true, email: true, role: true, active: true } },
+        shipments: {
+          include: {
+            carrier: { select: { name: true } },
+            client: { select: { companyName: true } },
+          },
+          orderBy: { shipmentDate: 'desc' },
+          take: 10,
         },
-        orderBy: { shipmentDate: 'desc' },
-        take: 10,
       },
-    },
-  })
+    }),
+    db.contact.findMany({
+      where: { clientId },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true, name: true, nickname: true,
+        street: true, city: true, state: true, postal: true, phone: true,
+      },
+    }),
+  ])
 
   if (!client) notFound()
 
@@ -109,6 +120,9 @@ export default async function ClienteDetailPage({ params }: PageProps) {
         )}
       </div>
 
+      {/* Contactos frecuentes */}
+      <ContactsSection clientId={client.id} contacts={contacts} />
+
       {/* Últimas guías */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -120,7 +134,7 @@ export default async function ClienteDetailPage({ params }: PageProps) {
             Ver todas
           </Link>
         </div>
-        <ShipmentsTable shipments={client.shipments} />
+        <ShipmentsTable shipments={client.shipments} isAdmin={false} />
       </div>
 
       {/* Activar / Desactivar */}

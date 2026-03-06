@@ -1,14 +1,24 @@
 'use client'
 
 import { useFormState, useFormStatus } from 'react-dom'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { createShipment, type CreateShipmentState } from '@/lib/actions/shipments'
-import { CheckCircle2, Loader2, Package, MapPin } from 'lucide-react'
+import { CheckCircle2, Loader2, Package, MapPin, BookUser } from 'lucide-react'
 import Link from 'next/link'
 
 interface Carrier { id: number; name: string }
 interface Client  { id: number; companyName: string }
 interface Props   { carriers: Carrier[]; clients: Client[] }
+
+interface ContactItem {
+  id: number
+  name: string
+  nickname: string | null
+  street: string | null
+  city: string | null
+  state: string | null
+  postal: string | null
+}
 
 const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500'
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
@@ -131,11 +141,69 @@ function CPInput({ name, cityRef, stateRef, abbrRef }: CPInputProps) {
   )
 }
 
+// ─── Contact quick-fill ───────────────────────────────────────────────────────
+
+interface ContactQuickFillProps {
+  contacts: ContactItem[]
+  nameRef:   React.RefObject<HTMLInputElement | null>
+  streetRef: React.RefObject<HTMLInputElement | null>
+  cityRef:   React.RefObject<HTMLInputElement | null>
+  stateRef:  React.RefObject<HTMLInputElement | null>
+  postalRef: React.RefObject<HTMLInputElement | null>
+}
+
+function ContactQuickFill({ contacts, nameRef, streetRef, cityRef, stateRef, postalRef }: ContactQuickFillProps) {
+  if (contacts.length === 0) return null
+
+  function fill(c: ContactItem) {
+    if (nameRef.current)   nameRef.current.value   = c.name
+    if (streetRef.current) streetRef.current.value = c.street ?? ''
+    if (cityRef.current)   cityRef.current.value   = c.city ?? ''
+    if (stateRef.current)  stateRef.current.value  = c.state ?? ''
+    if (postalRef.current) postalRef.current.value = c.postal ?? ''
+  }
+
+  return (
+    <div className="flex items-center gap-2 mb-3 p-2.5 bg-primary-50 border border-primary-100 rounded-lg">
+      <BookUser className="w-3.5 h-3.5 text-primary-500 shrink-0" />
+      <span className="text-xs text-primary-700 font-medium whitespace-nowrap">Usar contacto:</span>
+      <select
+        className="flex-1 text-xs border border-primary-200 rounded px-2 py-1 text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500"
+        onChange={e => {
+          const id = parseInt(e.target.value)
+          const c = contacts.find(x => x.id === id)
+          if (c) fill(c)
+          e.target.value = ''
+        }}
+        defaultValue=""
+      >
+        <option value="" disabled>Selecciona un contacto guardado...</option>
+        {contacts.map(c => (
+          <option key={c.id} value={c.id}>
+            {c.nickname ? `${c.nickname} · ${c.name}` : c.name}
+            {c.city ? ` — ${c.city}` : ''}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CreateShipmentForm({ carriers, clients }: Props) {
   const [state, formAction] = useFormState(createShipment, { status: 'idle' })
   const [quantity, setQuantity] = useState(1)
+  const [selectedClientId, setSelectedClientId] = useState('')
+  const [contacts, setContacts] = useState<ContactItem[]>([])
+
+  useEffect(() => {
+    if (!selectedClientId) { setContacts([]); return }
+    fetch(`/api/contacts?clientId=${selectedClientId}`)
+      .then(r => r.json())
+      .then(data => setContacts(Array.isArray(data) ? data : []))
+      .catch(() => setContacts([]))
+  }, [selectedClientId])
 
   // Refs para autofill de CP
   const originCityRef  = useRef<HTMLInputElement>(null)
@@ -143,6 +211,12 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
   const destCityRef    = useRef<HTMLInputElement>(null)
   const destStateRef   = useRef<HTMLInputElement>(null)
   const destAbbrRef    = useRef<HTMLInputElement>(null)
+
+  // Refs para autofill de contacto
+  const senderNameRef  = useRef<HTMLInputElement>(null)
+  const originStreetRef = useRef<HTMLInputElement>(null)
+  const recipientNameRef = useRef<HTMLInputElement>(null)
+  const destStreetRef  = useRef<HTMLInputElement>(null)
 
   if (state.status === 'success') return <SuccessView state={state} />
 
@@ -199,7 +273,12 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Cliente <span className="text-gray-400">(opcional)</span></label>
-            <select name="clientId" className={inputClass}>
+            <select
+              name="clientId"
+              className={inputClass}
+              value={selectedClientId}
+              onChange={e => setSelectedClientId(e.target.value)}
+            >
               <option value="">Sin asignar</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
             </select>
@@ -210,14 +289,22 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
       {/* ── Remitente ─────────────────────────────────────────── */}
       <div>
         <SectionTitle>Remitente</SectionTitle>
+        <ContactQuickFill
+          contacts={contacts}
+          nameRef={senderNameRef}
+          streetRef={originStreetRef}
+          cityRef={originCityRef}
+          stateRef={originStateRef}
+          postalRef={{ current: null }}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nombre</label>
-            <input name="senderName" className={inputClass} placeholder="Nombre del remitente" />
+            <input ref={senderNameRef} name="senderName" className={inputClass} placeholder="Nombre del remitente" />
           </div>
           <div>
             <label className={labelClass}>Calle y número</label>
-            <input name="originStreet" className={inputClass} placeholder="Av. Reforma 123, Col. Centro" />
+            <input ref={originStreetRef} name="originStreet" className={inputClass} placeholder="Av. Reforma 123, Col. Centro" />
           </div>
           <div>
             <label className={labelClass}>
@@ -244,14 +331,22 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
       {/* ── Consignatario ─────────────────────────────────────── */}
       <div>
         <SectionTitle>Consignatario</SectionTitle>
+        <ContactQuickFill
+          contacts={contacts}
+          nameRef={recipientNameRef}
+          streetRef={destStreetRef}
+          cityRef={destCityRef}
+          stateRef={destStateRef}
+          postalRef={{ current: null }}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nombre</label>
-            <input name="recipientName" className={inputClass} placeholder="Nombre del destinatario" />
+            <input ref={recipientNameRef} name="recipientName" className={inputClass} placeholder="Nombre del destinatario" />
           </div>
           <div>
             <label className={labelClass}>Calle y número</label>
-            <input name="destStreet" className={inputClass} placeholder="Av. Domingo Díez 910, Col. Lomas" />
+            <input ref={destStreetRef} name="destStreet" className={inputClass} placeholder="Av. Domingo Díez 910, Col. Lomas" />
           </div>
           <div>
             <label className={labelClass}>

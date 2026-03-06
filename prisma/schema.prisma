@@ -36,6 +36,7 @@ model Client {
   users       User[]
   shipments   Shipment[]
   batches     Batch[]
+  contacts    Contact[]
 
   @@map("clients")
 }
@@ -188,6 +189,26 @@ model ShipmentEvidence {
   shipment   Shipment @relation(fields: [shipmentId], references: [id])
 
   @@map("shipment_evidence")
+}
+
+// ─────────────────────────────────────────────
+// CONTACTS (agenda de contactos frecuentes)
+// ─────────────────────────────────────────────
+model Contact {
+  id        Int      @id @default(autoincrement())
+  clientId  Int?     @map("client_id")
+  name      String   @db.VarChar(200)
+  nickname  String?  @db.VarChar(100)
+  street    String?  @db.VarChar(200)
+  city      String?  @db.VarChar(100)
+  state     String?  @db.VarChar(100)
+  postal    String?  @db.VarChar(10)
+  phone     String?  @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  client    Client?  @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@map("contacts")
 }
 
 // ─────────────────────────────────────────────

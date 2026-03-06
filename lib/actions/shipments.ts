@@ -200,6 +200,49 @@ export async function deleteShipment(
   }
 }
 
+export async function bulkArchiveShipments(
+  ids: string[],
+  archive: boolean,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (ids.length === 0) return { status: 'error', message: 'Sin guías seleccionadas.' }
+
+  try {
+    await db.shipment.updateMany({
+      where: { id: { in: ids } },
+      data: { archived: archive, archivedAt: archive ? new Date() : null },
+    })
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[bulkArchiveShipments]', error)
+    return { status: 'error', message: 'Error al archivar las guías.' }
+  }
+}
+
+export async function bulkDeleteShipments(
+  ids: string[],
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (session.user.role !== 'admin') return { status: 'error', message: 'Sin permisos para eliminar.' }
+  if (ids.length === 0) return { status: 'error', message: 'Sin guías seleccionadas.' }
+
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.shipmentEvent.deleteMany({ where: { shipmentId: { in: ids } } })
+      await tx.shipmentEvidence.deleteMany({ where: { shipmentId: { in: ids } } })
+      await tx.shipment.deleteMany({ where: { id: { in: ids } } })
+    })
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[bulkDeleteShipments]', error)
+    return { status: 'error', message: 'Error al eliminar las guías.' }
+  }
+}
+
 export async function updateBatchStatus(
   batchId: string,
   status: ShipmentStatus,
