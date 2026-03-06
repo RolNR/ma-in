@@ -113,8 +113,8 @@ export default function TrackShipmentPage() {
                   Consejos
                 </h3>
                 <ul className="space-y-2 text-sm text-primary-600">
-                  <li>• Tu código de rastreo tiene 10 dígitos</li>
-                  <li>• Los resultados se actualizan en tiempo real</li>
+                  <li>• Tu código de rastreo lo encuentras en tu comprobante de envío</li>
+                  <li>• El estado se actualiza conforme avanza tu paquete</li>
                   <li>• Hay dos tipos de guía: Express y Economy</li>
                 </ul>
               </Card>

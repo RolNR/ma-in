@@ -4,110 +4,223 @@ import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
 import { validateTrackingForm } from '@/lib/validation'
 import {
-  Search,
-  Package,
-  Truck,
-  CheckCircle,
-  AlertCircle,
-  Zap,
-  Clock,
+  Search, Package, Truck, CheckCircle2, AlertCircle,
+  XCircle, Clock, Navigation, Zap, RefreshCw,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TrackingResult {
   trackingCode: string
   status: string
-  guideType: string
-  sender: string
-  receivedBy: string
-  originCity: string
-  destCity: string
-  content: string
+  guideType: string | null
+  sender: string | null
+  receivedBy: string | null
+  originCity: string | null
+  destCity: string | null
+  content: string | null
   date: string
   carrier: string
 }
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error' | 'not-found'
 
-const STATUSES = [
+// ─── Status config ────────────────────────────────────────────────────────────
+
+interface FlowStatus {
+  key: string
+  label: string
+  description: string
+  Icon: LucideIcon
+  activeClasses: string
+  badge: string
+  connector: string
+}
+
+const FLOW: FlowStatus[] = [
   {
-    key: 'RECOLECTADO POR MA-IN',
-    label: 'Recolectado por MA-IN',
-    description: 'Paquete recolectado y en camino a centro de distribución.',
-    icon: Package,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-600',
-    badgeBg: 'bg-blue-100 text-blue-700',
+    key: 'PENDIENTE',
+    label: 'Pendiente',
+    description: 'Guía generada, en espera de recolección.',
+    Icon: Clock,
+    activeClasses: 'bg-gray-500 text-white',
+    badge: 'bg-gray-100 text-gray-700',
+    connector: 'bg-gray-300',
   },
   {
-    key: 'EN_TRANSITO',
-    label: 'En tránsito',
-    description: 'Tu paquete está en ruta hacia la ciudad de destino.',
-    icon: Truck,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-500',
-    badgeBg: 'bg-yellow-100 text-yellow-700',
+    key: 'EN_RUTA',
+    label: 'En ruta',
+    description: 'Tu paquete está en camino al destino.',
+    Icon: Truck,
+    activeClasses: 'bg-blue-500 text-white',
+    badge: 'bg-blue-100 text-blue-700',
+    connector: 'bg-blue-300',
   },
   {
-    key: 'CONFIRMADO',
-    label: 'Confirmado',
-    description: 'La entrega ha sido confirmada exitosamente.',
-    icon: CheckCircle,
-    color: 'text-green-600',
-    bgColor: 'bg-green-600',
-    badgeBg: 'bg-green-100 text-green-700',
+    key: 'EN_PROCESO_ENTREGA',
+    label: 'En proceso de entrega',
+    description: 'El paquete está siendo entregado.',
+    Icon: Navigation,
+    activeClasses: 'bg-amber-500 text-white',
+    badge: 'bg-amber-100 text-amber-700',
+    connector: 'bg-amber-300',
+  },
+  {
+    key: 'ENTREGADO',
+    label: 'Entregado',
+    description: 'Paquete entregado exitosamente.',
+    Icon: CheckCircle2,
+    activeClasses: 'bg-green-500 text-white',
+    badge: 'bg-green-100 text-green-700',
+    connector: 'bg-green-300',
   },
 ]
 
-function getStatusIndex(status: string): number {
-  return STATUSES.findIndex((s) => s.key === status)
+interface TerminalStatus {
+  label: string
+  description: string
+  Icon: LucideIcon
+  badge: string
+  alertBg: string
+  alertBorder: string
+  alertText: string
 }
 
-function getStatusInfo(status: string) {
-  return STATUSES.find((s) => s.key === status) || STATUSES[0]
+const TERMINAL: Record<string, TerminalStatus> = {
+  ERRONEA: {
+    label: 'Envío con incidencia',
+    description: 'El envío presentó una incidencia. Contáctanos para más información.',
+    Icon: AlertCircle,
+    badge: 'bg-red-100 text-red-700',
+    alertBg: 'bg-red-50',
+    alertBorder: 'border-red-200',
+    alertText: 'text-red-700',
+  },
+  CADUCADA: {
+    label: 'Guía caducada',
+    description: 'Esta guía ha caducado y ya no está vigente.',
+    Icon: XCircle,
+    badge: 'bg-gray-100 text-gray-600',
+    alertBg: 'bg-gray-50',
+    alertBorder: 'border-gray-200',
+    alertText: 'text-gray-600',
+  },
+  SIN_UTILIZAR: {
+    label: 'Sin utilizar',
+    description: 'Esta guía fue generada pero no se ha utilizado.',
+    Icon: Package,
+    badge: 'bg-gray-100 text-gray-600',
+    alertBg: 'bg-gray-50',
+    alertBorder: 'border-gray-200',
+    alertText: 'text-gray-600',
+  },
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString('es-MX', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+  } catch {
+    return dateStr
+  }
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function InfoGrid({ result }: { result: TrackingResult }) {
+  const items = [
+    { label: 'Origen', value: result.originCity },
+    { label: 'Destino', value: result.destCity },
+    { label: 'Remitente', value: result.sender },
+    { label: 'Recibe', value: result.receivedBy },
+  ]
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+      {items.map(({ label, value }) => (
+        <div key={label}>
+          <p className="text-xs text-gray-500 mb-0.5">{label}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{value || '—'}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Timeline({ currentStatus }: { currentStatus: string }) {
+  const currentIdx = FLOW.findIndex(s => s.key === currentStatus)
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 mb-5">Seguimiento del envío</h3>
+      {FLOW.map((step, idx) => {
+        const isCompleted = idx < currentIdx
+        const isCurrent = idx === currentIdx
+        const isLast = idx === FLOW.length - 1
+        const StepIcon = step.Icon
+
+        return (
+          <div key={step.key} className="flex gap-4">
+            <div className="flex flex-col items-center">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                isCompleted || isCurrent ? step.activeClasses : 'bg-gray-100 text-gray-400'
+              } ${isCurrent ? 'ring-4 ring-offset-1 ring-current ring-opacity-20' : ''}`}>
+                <StepIcon className="w-4 h-4" />
+              </div>
+              {!isLast && (
+                <div className={`w-0.5 h-8 mt-0.5 ${isCompleted ? step.connector : 'bg-gray-200'}`} />
+              )}
+            </div>
+            <div className={`pt-1.5 ${isLast ? 'pb-0' : 'pb-2'}`}>
+              <p className={`text-sm font-semibold ${isCompleted || isCurrent ? 'text-gray-900' : 'text-gray-400'}`}>
+                {step.label}
+                {isCurrent && (
+                  <span className="ml-2 text-xs font-normal bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+                    Estado actual
+                  </span>
+                )}
+              </p>
+              <p className={`text-xs mt-0.5 ${isCompleted || isCurrent ? 'text-gray-500' : 'text-gray-300'}`}>
+                {step.description}
+              </p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function TrackingForm() {
   const [trackingNumber, setTrackingNumber] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [result, setResult] = useState<TrackingResult | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
+    setFormError(null)
 
     const validation = validateTrackingForm({ trackingNumber })
-
     if (!validation.isValid) {
-      setError(validation.errors[0].message)
+      setFormError(validation.errors[0].message)
       return
     }
 
     setStatus('loading')
 
     try {
-      const response = await fetch(
-        `/api/track?trackingNumber=${encodeURIComponent(trackingNumber.trim())}`
-      )
-
-      if (response.status === 404) {
-        setStatus('not-found')
-        return
-      }
-
-      if (!response.ok) {
-        setStatus('error')
-        return
-      }
-
-      const data = await response.json()
-
-      if (data.found && data.shipment) {
-        setResult(data.shipment)
-        setStatus('success')
-      } else {
-        setStatus('not-found')
-      }
+      const res = await fetch(`/api/track?trackingNumber=${encodeURIComponent(trackingNumber.trim())}`)
+      if (res.status === 404) { setStatus('not-found'); return }
+      if (!res.ok) { setStatus('error'); return }
+      const data = await res.json()
+      if (data.found && data.shipment) { setResult(data.shipment); setStatus('success') }
+      else setStatus('not-found')
     } catch {
       setStatus('error')
     }
@@ -117,26 +230,24 @@ export function TrackingForm() {
     setTrackingNumber('')
     setResult(null)
     setStatus('idle')
-    setError(null)
+    setFormError(null)
   }
 
-  const currentStatusIndex = result ? getStatusIndex(result.status) : -1
-  const currentStatusInfo = result ? getStatusInfo(result.status) : null
+  const flowStatus = result ? FLOW.find(s => s.key === result.status) : null
+  const terminalStatus = result ? TERMINAL[result.status] : null
+  const isExpress = result?.guideType?.toLowerCase().includes('express')
 
   return (
     <div>
       {/* Search form */}
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <form onSubmit={handleSubmit} className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
               placeholder="Ingresa tu código de rastreo"
               value={trackingNumber}
-              onChange={(e) => {
-                setTrackingNumber(e.target.value)
-                setError(null)
-              }}
-              error={error || undefined}
+              onChange={(e) => { setTrackingNumber(e.target.value); setFormError(null) }}
+              error={formError || undefined}
               leftIcon={<Search className="w-5 h-5" />}
               disabled={status === 'loading'}
             />
@@ -155,170 +266,100 @@ export function TrackingForm() {
 
       {/* Error state */}
       {status === 'error' && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-lg">
+        <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>Hubo un error al buscar el envío. Por favor intenta de nuevo.</p>
+          <p className="text-sm">Hubo un error al buscar el envío. Por favor intenta de nuevo.</p>
         </div>
       )}
 
       {/* Not found state */}
       {status === 'not-found' && (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Envío no encontrado
-          </h3>
-          <p className="text-gray-600 mb-6">
-            No encontramos información para el código <strong>{trackingNumber}</strong>.
-            Verifica que sea correcto.
+        <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+          <Package className="w-14 h-14 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Envío no encontrado</h3>
+          <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
+            No encontramos información para{' '}
+            <strong className="text-gray-700">{trackingNumber}</strong>.
+            Verifica que el código sea correcto.
           </p>
-          <Button variant="outline" onClick={handleReset}>
-            Intentar de nuevo
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            <RefreshCw className="w-4 h-4 mr-1.5" /> Intentar de nuevo
           </Button>
         </div>
       )}
 
       {/* Results */}
-      {status === 'success' && result && currentStatusInfo && (
-        <div className="space-y-6">
-          {/* Header with tracking code, status badge, and guide type */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      {status === 'success' && result && (
+        <div className="space-y-4">
+          {/* Header card */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Código de rastreo</p>
-                <p className="text-xl font-bold text-gray-900">{result.trackingCode}</p>
+                <p className="text-xs text-gray-500 mb-0.5">Código de rastreo</p>
+                <p className="text-lg font-bold text-gray-900 font-mono">{result.trackingCode}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{result.carrier}</p>
               </div>
-              <div className="flex items-center gap-3">
-                {/* Guide type badge */}
+              <div className="flex flex-wrap items-center gap-2">
                 {result.guideType && (
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                    result.guideType === 'EXPRESS'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-gray-100 text-gray-600'
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                    isExpress ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {result.guideType === 'EXPRESS' ? (
-                      <Zap className="w-4 h-4" />
-                    ) : (
-                      <Clock className="w-4 h-4" />
-                    )}
-                    {result.guideType === 'EXPRESS' ? 'Express' : 'Economy'}
-                  </div>
+                    {isExpress && <Zap className="w-3 h-3" />}
+                    {result.guideType}
+                  </span>
                 )}
-                {/* Status badge */}
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${currentStatusInfo.badgeBg}`}>
-                  <currentStatusInfo.icon className="w-5 h-5" />
-                  <span className="font-medium">{currentStatusInfo.label}</span>
-                </div>
+                {flowStatus && (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${flowStatus.badge}`}>
+                    <flowStatus.Icon className="w-3 h-3" />
+                    {flowStatus.label}
+                  </span>
+                )}
+                {terminalStatus && (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${terminalStatus.badge}`}>
+                    <terminalStatus.Icon className="w-3 h-3" />
+                    {terminalStatus.label}
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Info grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Origen</p>
-                <p className="font-medium text-gray-900">{result.originCity || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Destino</p>
-                <p className="font-medium text-gray-900">{result.destCity || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Remitente</p>
-                <p className="font-medium text-gray-900">{result.sender || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Recibe</p>
-                <p className="font-medium text-gray-900">{result.receivedBy || '—'}</p>
-              </div>
-            </div>
+            <InfoGrid result={result} />
 
             {(result.content || result.date) && (
-              <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap gap-6">
+              <div className="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
                 {result.content && (
-                  <div>
-                    <p className="text-sm text-gray-500">Contenido</p>
-                    <p className="text-sm text-gray-700">{result.content}</p>
-                  </div>
+                  <span>Contenido: <span className="text-gray-700">{result.content}</span></span>
                 )}
                 {result.date && (
-                  <div>
-                    <p className="text-sm text-gray-500">Fecha</p>
-                    <p className="text-sm text-gray-700">{result.date}</p>
-                  </div>
+                  <span>Fecha: <span className="text-gray-700">{formatDate(result.date)}</span></span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Vertical Timeline */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
-              Seguimiento del envío
-            </h3>
-            <div className="relative">
-              {STATUSES.map((step, index) => {
-                const isCompleted = index <= currentStatusIndex
-                const isCurrent = index === currentStatusIndex
-                const isLast = index === STATUSES.length - 1
-                const StepIcon = step.icon
-
-                return (
-                  <div key={step.key} className="relative flex gap-4">
-                    {/* Vertical line + circle */}
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          isCompleted
-                            ? `${step.bgColor} text-white`
-                            : 'bg-gray-200 text-gray-400'
-                        } ${isCurrent ? 'ring-4 ring-opacity-30 ring-current' : ''}`}
-                      >
-                        <StepIcon className="w-5 h-5" />
-                      </div>
-                      {!isLast && (
-                        <div
-                          className={`w-0.5 h-full min-h-[3rem] ${
-                            index < currentStatusIndex
-                              ? 'bg-green-300'
-                              : 'bg-gray-200'
-                          }`}
-                        />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className={`pb-8 ${isLast ? 'pb-0' : ''}`}>
-                      <p
-                        className={`font-semibold ${
-                          isCompleted ? 'text-gray-900' : 'text-gray-400'
-                        }`}
-                      >
-                        {step.label}
-                      </p>
-                      <p
-                        className={`text-sm mt-1 ${
-                          isCompleted ? 'text-gray-600' : 'text-gray-300'
-                        }`}
-                      >
-                        {step.description}
-                      </p>
-                      {isCurrent && (
-                        <span className="inline-block mt-2 text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          Estado actual
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+          {/* Timeline or terminal state */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            {flowStatus ? (
+              <Timeline currentStatus={result.status} />
+            ) : terminalStatus ? (
+              <div className={`flex items-start gap-3 p-4 rounded-xl border ${terminalStatus.alertBg} ${terminalStatus.alertBorder}`}>
+                <terminalStatus.Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${terminalStatus.alertText}`} />
+                <div>
+                  <p className={`text-sm font-semibold ${terminalStatus.alertText}`}>{terminalStatus.label}</p>
+                  <p className={`text-xs mt-1 ${terminalStatus.alertText} opacity-80`}>{terminalStatus.description}</p>
+                </div>
+              </div>
+            ) : null}
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-center">
-            <Button variant="outline" onClick={handleReset}>
-              Rastrear otro envío
-            </Button>
+          {/* Reset */}
+          <div className="flex justify-center pt-1">
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Rastrear otro envío
+            </button>
           </div>
         </div>
       )}

@@ -158,9 +158,11 @@ export const divisionDetails = {
       },
     ],
     trackingStatuses: [
-      { code: 'RECOLECTADO POR MA-IN', label: 'Recolectado por MA-IN', color: 'blue' },
-      { code: 'EN_TRANSITO', label: 'En tránsito', color: 'yellow' },
-      { code: 'CONFIRMADO', label: 'Confirmado', color: 'green' },
+      { code: 'PENDIENTE', label: 'Pendiente — en espera de recolección', color: 'gray' },
+      { code: 'EN_RUTA', label: 'En ruta — en tránsito al destino', color: 'blue' },
+      { code: 'EN_PROCESO_ENTREGA', label: 'En proceso de entrega', color: 'orange' },
+      { code: 'ENTREGADO', label: 'Entregado exitosamente', color: 'green' },
+      { code: 'ERRONEA', label: 'Envío con incidencia', color: 'red' },
     ],
   },
   pack: {

@@ -35,7 +35,7 @@ export default async function ImportarClientesPage() {
             <ul className="list-disc list-inside space-y-0.5 text-xs text-blue-700">
               <li><span className="font-mono">Email</span> — correo del cliente (requerido)</li>
               <li><span className="font-mono">Empresa</span> — nombre de la empresa (requerido)</li>
-              <li><span className="font-mono">Contraseña</span> — hash bcrypt de Knack (requerido)</li>
+              <li><span className="font-mono">Contraseña</span> — contraseña del cliente (requerido)</li>
               <li><span className="font-mono">Nombre de contacto : First</span> + <span className="font-mono">Last</span> — nombre completo</li>
             </ul>
           </div>

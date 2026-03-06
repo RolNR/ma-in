@@ -54,12 +54,10 @@ export const validators = {
 
   trackingNumber: (value: string): ValidationError | null => {
     if (!value || value.trim() === '') {
-      return { field: 'trackingNumber', message: 'El número de guía es requerido' }
+      return { field: 'trackingNumber', message: 'El código de rastreo es requerido' }
     }
-    // Formato esperado: letras y números, mínimo 8 caracteres
-    const trackingRegex = /^[A-Za-z0-9]{8,}$/
-    if (!trackingRegex.test(value.trim())) {
-      return { field: 'trackingNumber', message: 'Ingresa un número de guía válido' }
+    if (value.trim().length < 5) {
+      return { field: 'trackingNumber', message: 'Ingresa un código de rastreo válido' }
     }
     return null
   },
