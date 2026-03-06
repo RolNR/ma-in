@@ -28,14 +28,14 @@ export default async function PortalDashboardPage() {
   const statusCount = Object.fromEntries(byStatus.map((s) => [s.status, s._count.id]))
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Mi Panel</h1>
         <p className="text-gray-500 mt-1">Resumen de tus envíos</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <StatsCard label="Total guías" value={total} icon={Package} />
         <StatsCard label="En ruta" value={statusCount['EN_RUTA'] ?? 0} icon={TrendingUp} />
         <StatsCard label="Entregadas" value={statusCount['ENTREGADO'] ?? 0} icon={CheckCircle} />

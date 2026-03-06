@@ -45,17 +45,17 @@ export default async function PortalGuiaDetailPage({ params }: PageProps) {
   ]
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
         <Link href="/portal/guias" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
           <ArrowLeft className="w-4 h-4" /> Mis guías
         </Link>
         <div className="flex items-start gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 font-mono">{shipment.trackingCode}</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 font-mono break-all">{shipment.trackingCode}</h1>
             <p className="text-gray-500 mt-1">{shipment.carrier.name}</p>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             <StatusBadge status={shipment.status as ShipmentStatus} />
           </div>
         </div>

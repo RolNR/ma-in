@@ -30,7 +30,7 @@ export default async function PortalLayout({
           companyName: client.companyName,
         }}
       />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pt-14 md:pt-0 pb-16 md:pb-0">
         {children}
       </div>
     </div>

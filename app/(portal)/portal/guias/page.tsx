@@ -55,24 +55,24 @@ export default async function PortalGuiasPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
+    <div className="p-4 md:p-8">
+      <div className="mb-5 md:mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mis guías</h1>
         <p className="text-gray-500 mt-1">{total} resultado{total !== 1 ? 's' : ''}</p>
       </div>
 
       {/* Filtros */}
-      <form method="GET" action="/portal/guias" className="flex flex-wrap gap-3 mb-6">
+      <form method="GET" action="/portal/guias" className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3 mb-5 md:mb-6">
         <input
           name="q"
           defaultValue={q}
           placeholder="Buscar por código..."
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-56"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 sm:w-56 w-full"
         />
         <select
           name="status"
           defaultValue={status}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 w-full sm:w-auto"
         >
           <option value="">Todos los status</option>
           <option value="PENDIENTE">Pendiente</option>
@@ -83,20 +83,22 @@ export default async function PortalGuiasPage({ searchParams }: PageProps) {
           <option value="CADUCADA">Caducada</option>
           <option value="SIN_UTILIZAR">Sin utilizar</option>
         </select>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          Filtrar
-        </button>
-        {(status || q) && (
-          <Link
-            href="/portal/guias"
-            className="px-4 py-2 text-gray-600 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="flex-1 sm:flex-none px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
           >
-            Limpiar
-          </Link>
-        )}
+            Filtrar
+          </button>
+          {(status || q) && (
+            <Link
+              href="/portal/guias"
+              className="flex-1 sm:flex-none text-center px-4 py-2 text-gray-600 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              Limpiar
+            </Link>
+          )}
+        </div>
       </form>
 
       {/* Tabla */}
