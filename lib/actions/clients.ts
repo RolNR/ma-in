@@ -135,6 +135,27 @@ export async function updateClient(
   }
 }
 
+export async function deleteClient(id: number): Promise<{ status: 'success' } | { status: 'error'; message: string }> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (session.user.role !== 'admin') return { status: 'error', message: 'Sin permisos.' }
+
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.contact.deleteMany({ where: { clientId: id } })
+      await tx.user.deleteMany({ where: { clientId: id } })
+      await tx.shipment.updateMany({ where: { clientId: id }, data: { clientId: null } })
+      await tx.batch.updateMany({ where: { clientId: id }, data: { clientId: null } })
+      await tx.client.delete({ where: { id } })
+    })
+    revalidatePath('/admin/clientes')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[deleteClient]', error)
+    return { status: 'error', message: 'Error al eliminar el cliente.' }
+  }
+}
+
 export async function toggleClientActive(id: number, active: boolean) {
   await db.$transaction(async (tx) => {
     await tx.client.update({ where: { id }, data: { active } })

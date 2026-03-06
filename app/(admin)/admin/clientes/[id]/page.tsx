@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { EditClientForm } from '@/components/admin/EditClientForm'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
 import { ContactsSection } from '@/components/admin/ContactsSection'
+import { DeleteClientButton } from '@/components/admin/DeleteClientButton'
 import { toggleClientActive } from '@/lib/actions/clients'
 import { ResetPasswordButton } from '@/components/admin/ResetPasswordButton'
 import { ArrowLeft, Mail, Phone } from 'lucide-react'
@@ -137,26 +138,33 @@ export default async function ClienteDetailPage({ params }: PageProps) {
         <ShipmentsTable shipments={client.shipments} isAdmin={false} />
       </div>
 
-      {/* Activar / Desactivar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Acceso</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          {client.active
-            ? 'Desactivar bloqueará el acceso al portal para todos los usuarios de este cliente.'
-            : 'Activar habilitará el acceso al portal para los usuarios de este cliente.'}
-        </p>
-        <form action={handleToggle}>
-          <button
-            type="submit"
-            className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
-              client.active
-                ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-            }`}
-          >
-            {client.active ? 'Desactivar cliente' : 'Activar cliente'}
-          </button>
-        </form>
+      {/* Activar / Desactivar / Eliminar */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Acceso</h2>
+          <p className="text-sm text-gray-500 mb-3">
+            {client.active
+              ? 'Desactivar bloqueará el acceso al portal para todos los usuarios de este cliente.'
+              : 'Activar habilitará el acceso al portal para los usuarios de este cliente.'}
+          </p>
+          <form action={handleToggle}>
+            <button
+              type="submit"
+              className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors ${
+                client.active
+                  ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                  : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+              }`}
+            >
+              {client.active ? 'Desactivar cliente' : 'Activar cliente'}
+            </button>
+          </form>
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Zona de peligro</h2>
+          <DeleteClientButton clientId={client.id} />
+        </div>
       </div>
     </div>
   )
