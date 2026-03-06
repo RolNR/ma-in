@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { db } from '@/lib/db'
 import QRCode from 'qrcode'
 import { PrintButton } from './PrintButton'
@@ -29,7 +30,12 @@ export default async function ImprimirPage({ params }: PageProps) {
   })
   if (!shipment) notFound()
 
-  const qrDataUrl = await QRCode.toDataURL(shipment.trackingCode, {
+  const headersList = await headers()
+  const host  = headersList.get('host') ?? 'localhost:3000'
+  const proto = headersList.get('x-forwarded-proto') ?? 'http'
+  const scanUrl = `${proto}://${host}/scan/${shipment.trackingCode}`
+
+  const qrDataUrl = await QRCode.toDataURL(scanUrl, {
     width: 180,
     margin: 1,
     color: { dark: '#000000', light: '#ffffff' },

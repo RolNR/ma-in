@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Archive } from 'lucide-react'
 import Link from 'next/link'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
@@ -9,16 +9,18 @@ export const metadata = { title: 'Guías' }
 const PAGE_SIZE = 20
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; q?: string; page?: string }>
+  searchParams: Promise<{ status?: string; q?: string; page?: string; archived?: string }>
 }
 
 export default async function GuiasPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const status = params.status || ''
-  const q = params.q || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const status   = params.status   || ''
+  const q        = params.q        || ''
+  const page     = Math.max(1, parseInt(params.page || '1'))
+  const showArchived = params.archived === '1'
 
   const where = {
+    archived: showArchived ? true : false,
     ...(status ? { status: status as ShipmentStatus } : {}),
     ...(q
       ? {
@@ -44,6 +46,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
         destCity: true,
         destState: true,
         status: true,
+        archived: true,
         shipmentDate: true,
         carrier: { select: { name: true } },
       },
@@ -60,6 +63,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
     const p = new URLSearchParams()
     if (status) p.set('status', status)
     if (q) p.set('q', q)
+    if (showArchived) p.set('archived', '1')
     p.set('page', String(page))
     Object.entries(overrides).forEach(([k, v]) => {
       if (v) p.set(k, v); else p.delete(k)
@@ -71,19 +75,37 @@ export default async function GuiasPage({ searchParams }: PageProps) {
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Guías</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Guías {showArchived && <span className="text-amber-600">· Archivadas</span>}
+          </h1>
           <p className="text-gray-500 mt-1">{total} resultados</p>
         </div>
-        <Link
-          href="/admin/guias/nueva"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Nueva guía
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={showArchived ? '/admin/guias' : '/admin/guias?archived=1'}
+            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+              showArchived
+                ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            {showArchived ? 'Ver activas' : 'Ver archivadas'}
+          </Link>
+          {!showArchived && (
+            <Link
+              href="/admin/guias/nueva"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Nueva guía
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filtros */}
       <form method="GET" action="/admin/guias" className="flex flex-wrap gap-3 mb-6">
+        {showArchived && <input type="hidden" name="archived" value="1" />}
         <input
           name="q"
           defaultValue={q}
@@ -116,7 +138,7 @@ export default async function GuiasPage({ searchParams }: PageProps) {
 
         {(status || q) && (
           <Link
-            href="/admin/guias"
+            href={showArchived ? '/admin/guias?archived=1' : '/admin/guias'}
             className="px-4 py-2 text-gray-600 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             Limpiar

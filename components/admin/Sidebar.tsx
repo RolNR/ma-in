@@ -8,7 +8,9 @@ import {
   Package,
   Upload,
   Users,
+  UserCog,
   LogOut,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,22 +18,24 @@ interface NavItem {
   label: string
   href: string
   icon: React.ComponentType<{ className?: string }>
-  disabled?: boolean
+  adminOnly?: boolean
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Guías', href: '/admin/guias', icon: Package },
+  { label: 'Dashboard',    href: '/admin',          icon: LayoutDashboard },
+  { label: 'Guías',        href: '/admin/guias',    icon: Package },
   { label: 'Importar CSV', href: '/admin/importar', icon: Upload },
-  { label: 'Clientes', href: '/admin/clientes', icon: Users },
+  { label: 'Clientes',     href: '/admin/clientes', icon: Users },
+  { label: 'Usuarios',     href: '/admin/usuarios', icon: UserCog, adminOnly: true },
 ]
 
 interface SidebarProps {
-  user: { name: string; email: string }
+  user: { name: string; email: string; role: string }
 }
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const isAdmin = user.role === 'admin'
 
   return (
     <aside className="flex flex-col w-64 min-h-screen bg-gray-900 text-white shrink-0">
@@ -43,21 +47,9 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map(({ label, href, icon: Icon, disabled }) => {
+        {navItems.map(({ label, href, icon: Icon, adminOnly }) => {
+          if (adminOnly && !isAdmin) return null
           const isActive = pathname === href || (href !== '/admin' && pathname.startsWith(href))
-
-          if (disabled) {
-            return (
-              <span
-                key={href}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 cursor-not-allowed"
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-                <span className="ml-auto text-xs bg-gray-700 text-gray-400 px-1.5 py-0.5 rounded">Pronto</span>
-              </span>
-            )
-          }
 
           return (
             <Link
@@ -77,12 +69,21 @@ export function Sidebar({ user }: SidebarProps) {
         })}
       </nav>
 
-      {/* User + Logout */}
+      {/* User info + role badge + actions */}
       <div className="px-4 py-4 border-t border-gray-700">
-        <div className="mb-3 px-1">
-          <p className="text-sm font-medium text-white truncate">{user.name}</p>
-          <p className="text-xs text-gray-400 truncate">{user.email}</p>
-        </div>
+        <Link href="/admin/perfil" className="flex items-start gap-2 mb-3 px-1 rounded-lg hover:bg-gray-800 py-1.5 transition-colors group">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate group-hover:text-primary-300 transition-colors">{user.name}</p>
+            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+            <span className={cn(
+              'inline-block mt-1 text-xs font-semibold px-1.5 py-0.5 rounded capitalize',
+              isAdmin ? 'bg-primary-700 text-primary-100' : 'bg-gray-700 text-gray-300'
+            )}>
+              {user.role}
+            </span>
+          </div>
+          <Settings className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-300 mt-1 shrink-0 transition-colors" />
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"

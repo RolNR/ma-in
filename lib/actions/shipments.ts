@@ -133,6 +133,11 @@ export async function updateShipmentStatus(
   const updatedBy = parseInt(session.user.id)
 
   try {
+    const current = await db.shipment.findUnique({ where: { id: shipmentId }, select: { status: true } })
+    if (current?.status === status) {
+      return { status: 'error', message: 'La guía ya tiene ese status.' }
+    }
+
     await db.$transaction(async (tx) => {
       await tx.shipment.update({ where: { id: shipmentId }, data: { status } })
       await tx.shipmentEvent.create({
@@ -150,5 +155,92 @@ export async function updateShipmentStatus(
   } catch (error) {
     console.error('[updateShipmentStatus]', error)
     return { status: 'error', message: 'Error al actualizar el status.' }
+  }
+}
+
+export async function archiveShipment(
+  shipmentId: string,
+  archive: boolean,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+
+  try {
+    await db.shipment.update({
+      where: { id: shipmentId },
+      data: { archived: archive, archivedAt: archive ? new Date() : null },
+    })
+    revalidatePath(`/admin/guias/${shipmentId}`)
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[archiveShipment]', error)
+    return { status: 'error', message: 'Error al archivar la guía.' }
+  }
+}
+
+export async function deleteShipment(
+  shipmentId: string,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (session.user.role !== 'admin') return { status: 'error', message: 'Sin permisos para eliminar.' }
+
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.shipmentEvent.deleteMany({ where: { shipmentId } })
+      await tx.shipmentEvidence.deleteMany({ where: { shipmentId } })
+      await tx.shipment.delete({ where: { id: shipmentId } })
+    })
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[deleteShipment]', error)
+    return { status: 'error', message: 'Error al eliminar la guía.' }
+  }
+}
+
+export async function updateBatchStatus(
+  batchId: string,
+  status: ShipmentStatus,
+  description?: string,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+
+  const updatedBy = parseInt(session.user.id)
+
+  try {
+    // Only update shipments that don't already have the target status
+    const toUpdate = await db.shipment.findMany({
+      where: { batchId, NOT: { status } },
+      select: { id: true },
+    })
+
+    if (toUpdate.length === 0) {
+      return { status: 'error', message: 'Todas las guías del lote ya tienen ese status.' }
+    }
+
+    const ids = toUpdate.map(s => s.id)
+
+    await db.$transaction(async (tx) => {
+      await tx.shipment.updateMany({ where: { id: { in: ids } }, data: { status } })
+      await tx.shipmentEvent.createMany({
+        data: ids.map(shipmentId => ({
+          shipmentId,
+          status,
+          description: description?.trim() || null,
+          updatedBy,
+        })),
+      })
+    })
+
+    // Revalidate all affected guide pages
+    for (const id of ids) revalidatePath(`/admin/guias/${id}`)
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[updateBatchStatus]', error)
+    return { status: 'error', message: 'Error al actualizar el lote.' }
   }
 }
