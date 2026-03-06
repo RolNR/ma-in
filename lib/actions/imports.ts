@@ -96,7 +96,7 @@ export async function importShipments(
   if (rows.length === 0) return { status: 'error', message: 'El archivo está vacío.' }
 
   // Lookup de clientes: companyName.toUpperCase() → id
-  const clients = await db.client.findMany({ select: { id: true, companyName: true } })
+  const clients = await db.client.findMany({ where: { active: true }, select: { id: true, companyName: true } })
   const clientMap = new Map<string, number>(
     clients.map(c => [c.companyName.trim().toUpperCase(), c.id]),
   )

@@ -92,3 +92,12 @@ export async function changeUserRole(userId: number, role: UserRole): Promise<Ac
   revalidatePath('/admin/usuarios')
   return { status: 'success' }
 }
+
+export async function deleteUser(userId: number): Promise<ActionResult> {
+  const check = await requireAdmin()
+  if (!check.ok) return check.error
+
+  await db.user.delete({ where: { id: userId } })
+  revalidatePath('/admin/usuarios')
+  return { status: 'success' }
+}

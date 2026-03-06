@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { toggleUserActive, resetUserPassword, changeUserRole } from '@/lib/actions/users'
-import { UserCheck, UserX, RefreshCw, Copy, Check, Eye, EyeOff } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { toggleUserActive, resetUserPassword, changeUserRole, deleteUser } from '@/lib/actions/users'
+import { UserCheck, UserX, RefreshCw, Copy, Check, Eye, EyeOff, Trash2, AlertTriangle } from 'lucide-react'
 import type { UserRole } from '@/lib/generated/prisma/client'
 import { cn } from '@/lib/utils'
 
@@ -23,10 +24,12 @@ const ROLE_LABELS: Record<UserRole, string> = {
 }
 
 export function UserCard({ user }: { user: UserData }) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [newPassword, setNewPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   function handleToggleActive() {
     startTransition(async () => { await toggleUserActive(user.id) })
@@ -111,25 +114,56 @@ export function UserCard({ user }: { user: UserData }) {
 
       {/* Actions */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
-        <button
-          onClick={handleResetPassword}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Resetear contraseña
-        </button>
-        <div className="flex-1" />
-        <button
-          onClick={handleToggleActive}
-          className={cn(
-            'flex items-center gap-1.5 text-xs font-medium transition-colors',
-            user.active ? 'text-red-500 hover:text-red-700' : 'text-green-600 hover:text-green-800'
-          )}
-        >
-          {user.active
-            ? <><UserX className="w-3.5 h-3.5" /> Desactivar</>
-            : <><UserCheck className="w-3.5 h-3.5" /> Activar</>
-          }
-        </button>
+        {!confirmDelete ? (
+          <>
+            <button
+              onClick={handleResetPassword}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Resetear contraseña
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleToggleActive}
+              className={cn(
+                'flex items-center gap-1.5 text-xs font-medium transition-colors',
+                user.active ? 'text-red-500 hover:text-red-700' : 'text-green-600 hover:text-green-800'
+              )}
+            >
+              {user.active
+                ? <><UserX className="w-3.5 h-3.5" /> Desactivar</>
+                : <><UserCheck className="w-3.5 h-3.5" /> Activar</>
+              }
+            </button>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 w-full flex-wrap">
+            <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span className="text-xs text-red-600 flex-1">¿Eliminar permanentemente?</span>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => startTransition(async () => {
+                await deleteUser(user.id)
+                router.refresh()
+              })}
+              disabled={isPending}
+              className="flex items-center gap-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-md disabled:opacity-50 transition-colors"
+            >
+              <Trash2 className="w-3 h-3" /> Eliminar
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
