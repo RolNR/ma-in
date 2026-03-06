@@ -15,7 +15,7 @@ const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ShipmentStatus = 'ENTREGADO' | 'ERRONEA' | 'CADUCADA' | 'SIN_UTILIZAR' | 'EN_PROCESO_ENTREGA' | 'EN_RUTA'
+type ShipmentStatus = 'PENDIENTE' | 'EN_RUTA' | 'EN_PROCESO_ENTREGA' | 'ENTREGADO' | 'ERRONEA' | 'CADUCADA' | 'SIN_UTILIZAR'
 
 interface KnackRow {
   trackingCode: string
