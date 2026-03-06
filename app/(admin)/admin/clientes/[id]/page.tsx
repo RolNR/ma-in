@@ -22,7 +22,10 @@ export default async function ClienteDetailPage({ params }: PageProps) {
     include: {
       users: { select: { id: true, name: true, email: true, role: true, active: true } },
       shipments: {
-        include: { carrier: { select: { name: true } } },
+        include: {
+          carrier: { select: { name: true } },
+          client: { select: { companyName: true } },
+        },
         orderBy: { shipmentDate: 'desc' },
         take: 10,
       },
