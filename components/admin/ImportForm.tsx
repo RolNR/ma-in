@@ -2,7 +2,7 @@
 
 import { useFormState, useFormStatus } from 'react-dom'
 import { importShipments, type ImportState } from '@/lib/actions/imports'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -104,6 +104,14 @@ export function ImportForm() {
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Assign file to hidden input AFTER the preview form renders (fileInputRef is null before that)
+  useEffect(() => {
+    if (local.type !== 'preview' || !fileInputRef.current) return
+    const dt = new DataTransfer()
+    dt.items.add(local.file)
+    fileInputRef.current.files = dt.files
+  }, [local])
+
   async function processFile(file: File) {
     if (!/\.(xlsx|xls)$/i.test(file.name)) return
     setLocal({ type: 'parsing' })
@@ -141,13 +149,6 @@ export function ImportForm() {
         status: String(r['STATUS'] ?? '').trim() || null,
         date: toDateStr(r['FECHA']),
       }))
-
-      // Set file on hidden input so form submission includes it
-      if (fileInputRef.current) {
-        const dt = new DataTransfer()
-        dt.items.add(file)
-        fileInputRef.current.files = dt.files
-      }
 
       setLocal({
         type: 'preview',
