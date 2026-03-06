@@ -9,8 +9,8 @@ export const COMPANY = {
   tagline: 'Soluciones integrales de logística',
   description: 'Empresa mexicana líder en soluciones de logística, rastreo, empaque y comercio.',
   email: 'contacto@ma-in.mx',
-  phone: '+52 777 123 4567',
-  whatsapp: '+52 777 123 4567',
+  phone: '+52 777 143 9445',
+  whatsapp: '+52 777 143 9445',
 } as const
 
 // Ubicación física

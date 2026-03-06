@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, Package, LogOut, Plus } from 'lucide-react'
+import { LayoutDashboard, Package, LogOut, Plus, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface PortalSidebarProps {
@@ -13,6 +13,7 @@ interface PortalSidebarProps {
 const navItems = [
   { label: 'Dashboard', href: '/portal', icon: LayoutDashboard },
   { label: 'Mis guías', href: '/portal/guias', icon: Package },
+  { label: 'Soporte', href: '/portal/soporte', icon: HelpCircle },
 ]
 
 const showCreateShipment = process.env.NEXT_PUBLIC_PORTAL_CREATE_SHIPMENT === 'true'

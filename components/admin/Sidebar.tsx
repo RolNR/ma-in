@@ -11,6 +11,7 @@ import {
   UserCog,
   LogOut,
   Settings,
+  HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: 'Importar CSV', href: '/admin/importar', icon: Upload },
   { label: 'Clientes',     href: '/admin/clientes', icon: Users },
   { label: 'Usuarios',     href: '/admin/usuarios', icon: UserCog, adminOnly: true },
+  { label: 'Soporte',     href: '/admin/soporte',  icon: HelpCircle },
 ]
 
 interface SidebarProps {

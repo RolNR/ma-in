@@ -4,7 +4,6 @@ import { Card } from '@/components/ui'
 import { Breadcrumb } from '@/components/layout'
 import { TrackingForm } from '@/components/forms'
 import { ROUTES, COMPANY } from '@/lib/constants'
-import { divisionDetails } from '@/data/divisions'
 import { Phone, Mail, HelpCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -13,8 +12,6 @@ export const metadata: Metadata = {
 }
 
 export default function TrackShipmentPage() {
-  const { trackingStatuses } = divisionDetails.logistik
-
   return (
     <>
       <Hero
@@ -45,39 +42,6 @@ export default function TrackShipmentPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Status guide */}
-              <Card className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">
-                  Guía de estatus
-                </h3>
-                <ul className="space-y-3">
-                  {trackingStatuses.map((status) => (
-                    <li key={status.code} className="flex items-center gap-3">
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{
-                          backgroundColor:
-                            status.color === 'gray'
-                              ? '#6b7280'
-                              : status.color === 'blue'
-                              ? '#3b82f6'
-                              : status.color === 'yellow'
-                              ? '#eab308'
-                              : status.color === 'orange'
-                              ? '#f97316'
-                              : status.color === 'green'
-                              ? '#22c55e'
-                              : '#ef4444',
-                        }}
-                      />
-                      <span className="text-sm text-gray-600">
-                        {status.label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-
               {/* Help */}
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-4">
