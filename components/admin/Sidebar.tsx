@@ -44,7 +44,7 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-700">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Panel Admin</p>
-          <p className="text-lg font-bold text-white mt-0.5">MA-IN</p>
+          <p className="text-lg font-bold text-white mt-0.5">TRACK</p>
         </div>
 
         {/* Nav */}
@@ -99,7 +99,7 @@ export function Sidebar({ user }: SidebarProps) {
       <header className="md:hidden fixed top-0 inset-x-0 z-40 h-14 bg-gray-900 flex items-center justify-between px-4">
         <div>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest leading-none">Panel Admin</p>
-          <p className="text-sm font-bold text-white">MA-IN</p>
+          <p className="text-sm font-bold text-white">TRACK</p>
         </div>
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
