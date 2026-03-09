@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { MAIN_NAV, COMPANY, ROUTES } from '@/lib/constants'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui'
 
 export function Header() {
@@ -75,7 +75,7 @@ export function Header() {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <Link href={ROUTES.logistik.trackShipment}>
               <Button variant="outline" size="sm">
                 Rastrear envío
@@ -85,6 +85,13 @@ export function Header() {
               <Button variant="primary" size="sm">
                 Contactar
               </Button>
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors border border-gray-200 hover:border-primary-200"
+            >
+              <LogIn className="w-4 h-4" />
+              Acceder
             </Link>
           </div>
 
@@ -143,6 +150,13 @@ export function Header() {
               <Button variant="primary" className="w-full">
                 Contactar
               </Button>
+            </Link>
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              Acceder al portal
             </Link>
           </div>
         </nav>

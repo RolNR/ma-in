@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
@@ -30,7 +30,8 @@ export default function LoginPage() {
     if (result?.error) {
       setError('Credenciales incorrectas. Verifica tu email y contraseña.')
     } else {
-      router.push('/admin')
+      const session = await getSession()
+      router.push(session?.user.role === 'client' ? '/portal' : '/admin')
     }
   }
 
