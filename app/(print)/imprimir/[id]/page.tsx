@@ -26,7 +26,10 @@ export default async function ImprimirPage({ params }: PageProps) {
 
   const shipment = await db.shipment.findUnique({
     where: { id },
-    include: { carrier: { select: { name: true } } },
+    include: {
+      carrier: { select: { name: true } },
+      client:  { select: { phone: true } },
+    },
   })
   if (!shipment) notFound()
 
@@ -84,8 +87,8 @@ export default async function ImprimirPage({ params }: PageProps) {
             <div className="w-40 shrink-0">
               <p className="text-xs font-bold tracking-widest text-gray-500 mb-1">REMITENTE</p>
               <p className="font-bold text-sm">{shipment.senderName?.toUpperCase() || '—'}</p>
-              {shipment.contactPhone && (
-                <p className="text-xs text-gray-600 mt-1">Tel: {shipment.contactPhone}</p>
+              {shipment.client?.phone && (
+                <p className="text-xs text-gray-600 mt-1">Tel: {shipment.client.phone}</p>
               )}
             </div>
             <div>

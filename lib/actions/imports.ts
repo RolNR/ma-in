@@ -115,7 +115,7 @@ export async function importShipments(
   const toInsert: {
     trackingCode: string; carrierId: number; clientId: number | null
     folioInterno: string | null; guideType: string | null; externalGuideNo: string | null
-    senderName: string | null; contactPhone: string | null; destCity: string | null; status: ShipmentStatus
+    senderName: string | null; destCity: string | null; status: ShipmentStatus
     receivedBy: string | null; content: string | null; weight: number | null
     overweight: number | null; shipmentDate: Date; carrierMetadata: object; createdBy: number
   }[] = []
@@ -144,7 +144,6 @@ export async function importShipments(
       guideType: str(row['TIPO DE SERVICIO']),
       externalGuideNo: str(row['NUM GUIA']),
       senderName,
-      contactPhone: str(row['TELEFONO DE CONTACTO']) ?? str(row['TEL CONTACTO']) ?? str(row['TELEFONO']),
       destCity: str(row['DESTINO']),
       status: normalizeStatus(row['STATUS']),
       receivedBy: str(row['RECIBIDO DESTINO']),

@@ -33,7 +33,7 @@ export default async function GuiaDetailPage({ params }: PageProps) {
     where: { id },
     include: {
       carrier:      { select: { name: true } },
-      client:       { select: { id: true, companyName: true } },
+      client:       { select: { id: true, companyName: true, phone: true } },
       createdByUser:{ select: { name: true } },
       events: {
         include: { user: { select: { name: true } } },
@@ -144,12 +144,12 @@ export default async function GuiaDetailPage({ params }: PageProps) {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Remitente</p>
                 <p className="font-semibold text-gray-900">{shipment.senderName || '—'}</p>
                 {originAddr && <p className="text-sm text-gray-500 leading-snug">{originAddr}</p>}
-                {shipment.contactPhone && (
+                {shipment.client?.phone && (
                   <a
-                    href={`tel:${shipment.contactPhone}`}
+                    href={`tel:${shipment.client.phone}`}
                     className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-800 font-medium mt-1"
                   >
-                    <Phone className="w-3.5 h-3.5" /> {shipment.contactPhone}
+                    <Phone className="w-3.5 h-3.5" /> {shipment.client.phone}
                   </a>
                 )}
               </div>

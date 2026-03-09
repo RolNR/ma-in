@@ -114,7 +114,6 @@ model Shipment {
 
   // Remitente
   senderName      String?        @map("sender_name") @db.VarChar(200)
-  contactPhone    String?        @map("contact_phone") @db.VarChar(30)
   originStreet    String?        @map("origin_street") @db.VarChar(200)
   originCity      String?        @map("origin_city") @db.VarChar(100)
   originState     String?        @map("origin_state") @db.VarChar(100)

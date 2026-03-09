@@ -27,7 +27,7 @@ export default async function ImprimirLotePage({ params }: PageProps) {
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     include: {
-      client: { select: { companyName: true } },
+      client: { select: { companyName: true, phone: true } },
       user:   { select: { name: true } },
       shipments: {
         orderBy: { trackingCode: 'asc' },
@@ -111,8 +111,8 @@ export default async function ImprimirLotePage({ params }: PageProps) {
                   <div className="w-40 shrink-0">
                     <p className="text-xs font-bold tracking-widest text-gray-500 mb-1">REMITENTE</p>
                     <p className="font-bold text-sm">{shipment.senderName?.toUpperCase() || '—'}</p>
-                    {shipment.contactPhone && (
-                      <p className="text-xs text-gray-600 mt-1">Tel: {shipment.contactPhone}</p>
+                    {batch.client?.phone && (
+                      <p className="text-xs text-gray-600 mt-1">Tel: {batch.client.phone}</p>
                     )}
                   </div>
                   <div>
