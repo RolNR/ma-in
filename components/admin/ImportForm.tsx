@@ -109,14 +109,9 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Build a Set of known legal names (and company names as fallback) for quick lookup
+  // legalName tiene prioridad; si no existe, usamos companyName como fallback
   const knownOrigins = new Set(
-    clients.flatMap(c => {
-      const entries: string[] = []
-      if (c.legalName) entries.push(c.legalName.trim().toUpperCase())
-      if (!c.legalName) entries.push(c.companyName.trim().toUpperCase())
-      return entries
-    })
+    clients.map(c => (c.legalName ?? c.companyName).trim().toUpperCase())
   )
 
   // Assign file to hidden input AFTER the preview form renders (fileInputRef is null before that)

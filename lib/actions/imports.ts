@@ -100,12 +100,9 @@ export async function importShipments(
     where: { active: true },
     select: { id: true, companyName: true, legalName: true },
   })
-  const clientMap = new Map<string, number>()
-  for (const c of clients) {
-    if (c.legalName) clientMap.set(c.legalName.trim().toUpperCase(), c.id)
-    // fallback: también mapear por companyName si no hay legalName
-    if (!c.legalName) clientMap.set(c.companyName.trim().toUpperCase(), c.id)
-  }
+  const clientMap = new Map<string, number>(
+    clients.map(c => [(c.legalName ?? c.companyName).trim().toUpperCase(), c.id])
+  )
 
   // Tracking codes ya existentes en DB
   const allTCs = rows
