@@ -111,6 +111,9 @@ export default async function ImprimirLotePage({ params }: PageProps) {
                   <div className="w-40 shrink-0">
                     <p className="text-xs font-bold tracking-widest text-gray-500 mb-1">REMITENTE</p>
                     <p className="font-bold text-sm">{shipment.senderName?.toUpperCase() || '—'}</p>
+                    {shipment.contactPhone && (
+                      <p className="text-xs text-gray-600 mt-1">Tel: {shipment.contactPhone}</p>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs font-bold tracking-widest text-gray-500 mb-1">DIRECCIÓN</p>

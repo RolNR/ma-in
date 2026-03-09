@@ -41,6 +41,7 @@ export async function createShipment(
     status,
     guideType:      str(formData, 'guideType'),
     senderName:     str(formData, 'senderName'),
+    contactPhone:   str(formData, 'contactPhone'),
     originStreet:   str(formData, 'originStreet'),
     originCity:     str(formData, 'originCity'),
     originState:    str(formData, 'originState'),

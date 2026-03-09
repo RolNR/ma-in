@@ -7,7 +7,7 @@ import { ShipmentTimeline } from '@/components/admin/ShipmentTimeline'
 import { UpdateStatusForm } from '@/components/admin/UpdateStatusForm'
 import { ShipmentActions } from '@/components/admin/ShipmentActions'
 import { EvidenceGallery } from '@/components/admin/EvidenceGallery'
-import { ArrowLeft, Printer, MapPin, Package, CalendarDays, User, Building2, ArrowRight, Layers, ArchiveIcon, Navigation } from 'lucide-react'
+import { ArrowLeft, Printer, MapPin, Package, CalendarDays, User, Building2, ArrowRight, Layers, ArchiveIcon, Navigation, Phone } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
 interface PageProps {
@@ -144,6 +144,14 @@ export default async function GuiaDetailPage({ params }: PageProps) {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Remitente</p>
                 <p className="font-semibold text-gray-900">{shipment.senderName || '—'}</p>
                 {originAddr && <p className="text-sm text-gray-500 leading-snug">{originAddr}</p>}
+                {shipment.contactPhone && (
+                  <a
+                    href={`tel:${shipment.contactPhone}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-800 font-medium mt-1"
+                  >
+                    <Phone className="w-3.5 h-3.5" /> {shipment.contactPhone}
+                  </a>
+                )}
               </div>
 
               {/* Arrow */}

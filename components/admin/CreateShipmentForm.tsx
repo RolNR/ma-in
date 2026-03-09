@@ -325,6 +325,13 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
             <label className={labelClass}>Estado</label>
             <input ref={originStateRef} name="originState" className={inputClass} placeholder="Estado" />
           </div>
+          <div>
+            <label className={labelClass}>
+              Teléfono de contacto
+              <span className="ml-1 text-xs text-gray-400">(para el operador)</span>
+            </label>
+            <input name="contactPhone" type="tel" className={inputClass} placeholder="55 1234 5678" />
+          </div>
         </div>
       </div>
 
