@@ -160,7 +160,7 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
       const allOrigins = dataRows
         .map(r => String(r['NOMBRE CORTO DE ORIGEN'] ?? '').trim())
         .filter(Boolean)
-      const uniqueOrigins = [...new Set(allOrigins.map(o => o.toUpperCase()))]
+      const uniqueOrigins = Array.from(new Set(allOrigins.map(o => o.toUpperCase())))
       const unmatchedOrigins = uniqueOrigins
         .filter(o => !knownOrigins.has(o))
         .map(o => allOrigins.find(a => a.toUpperCase() === o) ?? o) // preserve original casing
