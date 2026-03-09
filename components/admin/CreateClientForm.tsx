@@ -68,7 +68,13 @@ export function CreateClientForm() {
           <label className={labelClass}>
             Empresa <span className="text-red-500">*</span>
           </label>
-          <input name="companyName" required className={inputClass} placeholder="Nombre de la empresa" />
+          <input name="companyName" required className={inputClass} placeholder="Nombre comercial (ej. Qualitas Aguascalientes)" />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Razón social</label>
+          <input name="legalName" className={inputClass} placeholder="Razón social para facturación (ej. Interdependientes SA de CV)" />
+          <p className="text-xs text-gray-400 mt-1">Se usa para vincular guías del excel maestro a este cliente.</p>
         </div>
 
         <div>

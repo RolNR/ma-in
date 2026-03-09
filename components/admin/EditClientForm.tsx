@@ -7,6 +7,7 @@ interface EditClientFormProps {
   client: {
     id: number
     companyName: string
+    legalName: string | null
     contactName: string | null
     rfc: string | null
     phone: string | null
@@ -36,6 +37,16 @@ export function EditClientForm({ client }: EditClientFormProps) {
             required
             defaultValue={client.companyName}
             className={inputClass}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Razón social</label>
+          <input
+            name="legalName"
+            defaultValue={client.legalName ?? ''}
+            className={inputClass}
+            placeholder="Razón social para facturación"
           />
         </div>
 

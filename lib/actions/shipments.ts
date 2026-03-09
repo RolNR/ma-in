@@ -221,6 +221,40 @@ export async function bulkArchiveShipments(
   }
 }
 
+export async function bulkUpdateStatus(
+  ids: string[],
+  status: ShipmentStatus,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (ids.length === 0) return { status: 'error', message: 'Sin guías seleccionadas.' }
+
+  const updatedBy = parseInt(session.user.id)
+
+  try {
+    const toUpdate = await db.shipment.findMany({
+      where: { id: { in: ids }, NOT: { status } },
+      select: { id: true },
+    })
+
+    if (toUpdate.length === 0) return { status: 'error', message: 'Las guías seleccionadas ya tienen ese status.' }
+
+    const updateIds = toUpdate.map(s => s.id)
+    await db.$transaction(async (tx) => {
+      await tx.shipment.updateMany({ where: { id: { in: updateIds } }, data: { status } })
+      await tx.shipmentEvent.createMany({
+        data: updateIds.map(shipmentId => ({ shipmentId, status, updatedBy })),
+      })
+    })
+
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[bulkUpdateStatus]', error)
+    return { status: 'error', message: 'Error al actualizar el status.' }
+  }
+}
+
 export async function bulkDeleteShipments(
   ids: string[],
 ): Promise<UpdateStatusState> {

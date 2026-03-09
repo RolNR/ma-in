@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { StatusBadge } from './StatusBadge'
 import { Package, ChevronRight, ChevronDown, Archive, ArchiveRestore, Trash2, Loader2, AlertTriangle, X } from 'lucide-react'
-import { bulkArchiveShipments, bulkDeleteShipments } from '@/lib/actions/shipments'
+import { bulkArchiveShipments, bulkDeleteShipments, bulkUpdateStatus } from '@/lib/actions/shipments'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
 interface Shipment {
@@ -128,12 +128,23 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
 
 // ─── Bulk action bar ──────────────────────────────────────────────────────────
 
+const STATUS_OPTIONS: { value: ShipmentStatus; label: string }[] = [
+  { value: 'PENDIENTE',           label: 'Pendiente' },
+  { value: 'EN_RUTA',             label: 'En ruta' },
+  { value: 'EN_PROCESO_ENTREGA',  label: 'En proceso de entrega' },
+  { value: 'ENTREGADO',           label: 'Entregado' },
+  { value: 'ERRONEA',             label: 'Errónea' },
+  { value: 'CADUCADA',            label: 'Caducada' },
+  { value: 'SIN_UTILIZAR',        label: 'Sin utilizar' },
+]
+
 interface BulkBarProps {
   count: number
   isAdmin: boolean
   showArchived: boolean
   onArchive: () => void
   onDelete: () => void
+  onStatusChange: (status: ShipmentStatus) => void
   onClear: () => void
   isPending: boolean
   confirmDelete: boolean
@@ -144,9 +155,11 @@ interface BulkBarProps {
 
 function BulkBar({
   count, isAdmin, showArchived,
-  onArchive, onDelete, onClear,
+  onArchive, onDelete, onStatusChange, onClear,
   isPending, confirmDelete, onConfirmDelete, onCancelDelete, error,
 }: BulkBarProps) {
+  const [selectedStatus, setSelectedStatus] = useState<ShipmentStatus>('ENTREGADO')
+
   return (
     <div className="px-4 py-3 bg-primary-50 border-b border-primary-100 flex flex-wrap items-center gap-3">
       <span className="text-sm font-semibold text-primary-700">{count} guía{count !== 1 ? 's' : ''} seleccionada{count !== 1 ? 's' : ''}</span>
@@ -154,6 +167,31 @@ function BulkBar({
       {!confirmDelete && (
         <div className="flex items-center gap-2 ml-auto flex-wrap">
           {error && <span className="text-xs text-red-600">{error}</span>}
+
+          {/* Cambiar status masivo */}
+          <div className="flex items-center gap-1.5">
+            <select
+              value={selectedStatus}
+              onChange={e => setSelectedStatus(e.target.value as ShipmentStatus)}
+              disabled={isPending}
+              className="px-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-40"
+            >
+              {STATUS_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => onStatusChange(selectedStatus)}
+              disabled={isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white disabled:opacity-40 transition-colors"
+            >
+              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              Aplicar
+            </button>
+          </div>
+
+          <div className="w-px h-5 bg-gray-300" />
+
           <button
             onClick={onArchive}
             disabled={isPending}
@@ -244,6 +282,19 @@ export function ShipmentsTable({ shipments, isAdmin, showArchived = false }: Shi
     setError('')
   }
 
+  function handleBulkStatusChange(status: ShipmentStatus) {
+    setError('')
+    startTransition(async () => {
+      const result = await bulkUpdateStatus(Array.from(selected), status)
+      if (result.status === 'error') {
+        setError(result.message)
+      } else {
+        clearSelection()
+        router.refresh()
+      }
+    })
+  }
+
   function handleBulkArchive() {
     setError('')
     startTransition(async () => {
@@ -289,6 +340,7 @@ export function ShipmentsTable({ shipments, isAdmin, showArchived = false }: Shi
           count={selected.size}
           isAdmin={isAdmin}
           showArchived={showArchived}
+          onStatusChange={handleBulkStatusChange}
           onArchive={handleBulkArchive}
           onDelete={() => setConfirmDelete(true)}
           onClear={clearSelection}

@@ -27,6 +27,7 @@ model Carrier {
 model Client {
   id          Int        @id @default(autoincrement())
   companyName String     @map("company_name") @db.VarChar(200)
+  legalName   String?    @map("legal_name") @db.VarChar(200)
   rfc         String?    @db.VarChar(13)
   email       String?    @db.VarChar(100)
   phone       String?    @db.VarChar(20)

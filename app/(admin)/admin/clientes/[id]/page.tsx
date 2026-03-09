@@ -62,6 +62,7 @@ export default async function ClienteDetailPage({ params }: PageProps) {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{client.companyName}</h1>
+            {client.legalName && <p className="text-sm text-gray-500 mt-0.5">{client.legalName}</p>}
             {client.rfc && <p className="text-sm text-gray-500 font-mono mt-0.5">{client.rfc}</p>}
           </div>
           <span
@@ -83,6 +84,7 @@ export default async function ClienteDetailPage({ params }: PageProps) {
           client={{
             id: client.id,
             companyName: client.companyName,
+            legalName: client.legalName,
             contactName: client.contactName,
             rfc: client.rfc,
             phone: client.phone,

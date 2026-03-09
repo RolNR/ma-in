@@ -16,6 +16,7 @@ export async function createClient(
   formData: FormData,
 ): Promise<CreateClientState> {
   const companyName = formData.get('companyName') as string
+  const legalName = formData.get('legalName') as string | null
   const email = formData.get('email') as string
   const contactName = formData.get('contactName') as string | null
   const rfc = formData.get('rfc') as string | null
@@ -43,6 +44,7 @@ export async function createClient(
       const client = await tx.client.create({
         data: {
           companyName: companyName.trim(),
+          legalName: legalName?.trim() || null,
           email: normalizedEmail,
           contactName: contactName?.trim() || null,
           rfc: rfc?.trim() || null,
@@ -108,6 +110,7 @@ export async function updateClient(
 ): Promise<UpdateClientState> {
   const id = parseInt(formData.get('id') as string)
   const companyName = formData.get('companyName') as string
+  const legalName = formData.get('legalName') as string | null
   const contactName = formData.get('contactName') as string | null
   const rfc = formData.get('rfc') as string | null
   const phone = formData.get('phone') as string | null
@@ -120,6 +123,7 @@ export async function updateClient(
       where: { id },
       data: {
         companyName: companyName.trim(),
+        legalName: legalName?.trim() || null,
         contactName: contactName?.trim() || null,
         rfc: rfc?.trim() || null,
         phone: phone?.trim() || null,
