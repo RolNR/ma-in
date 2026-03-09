@@ -95,11 +95,17 @@ export async function importShipments(
 
   if (rows.length === 0) return { status: 'error', message: 'El archivo está vacío.' }
 
-  // Lookup de clientes: companyName.toUpperCase() → id
-  const clients = await db.client.findMany({ where: { active: true }, select: { id: true, companyName: true } })
-  const clientMap = new Map<string, number>(
-    clients.map(c => [c.companyName.trim().toUpperCase(), c.id]),
-  )
+  // Lookup de clientes: legalName (razón social) → id, con fallback a companyName
+  const clients = await db.client.findMany({
+    where: { active: true },
+    select: { id: true, companyName: true, legalName: true },
+  })
+  const clientMap = new Map<string, number>()
+  for (const c of clients) {
+    if (c.legalName) clientMap.set(c.legalName.trim().toUpperCase(), c.id)
+    // fallback: también mapear por companyName si no hay legalName
+    if (!c.legalName) clientMap.set(c.companyName.trim().toUpperCase(), c.id)
+  }
 
   // Tracking codes ya existentes en DB
   const allTCs = rows

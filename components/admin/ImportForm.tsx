@@ -3,7 +3,7 @@
 import { useFormState, useFormStatus } from 'react-dom'
 import { importShipments, type ImportState } from '@/lib/actions/imports'
 import { useRef, useState, useEffect } from 'react'
-import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,15 +17,20 @@ interface PreviewRow {
 
 interface PreviewStats {
   total: number
-  toImport: number   // unique TCs (estimated inserts)
+  toImport: number
   withoutCode: number
   intraDups: number
+}
+
+interface ClientRef {
+  companyName: string
+  legalName: string | null
 }
 
 type LocalStep =
   | { type: 'idle' }
   | { type: 'parsing' }
-  | { type: 'preview'; file: File; rows: PreviewRow[]; stats: PreviewStats }
+  | { type: 'preview'; file: File; rows: PreviewRow[]; stats: PreviewStats; unmatchedOrigins: string[] }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -98,11 +103,21 @@ function SuccessView({ state }: { state: Extract<ImportState, { status: 'success
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function ImportForm() {
+export function ImportForm({ clients }: { clients: ClientRef[] }) {
   const [serverState, formAction] = useFormState(importShipments, { status: 'idle' })
   const [local, setLocal] = useState<LocalStep>({ type: 'idle' })
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Build a Set of known legal names (and company names as fallback) for quick lookup
+  const knownOrigins = new Set(
+    clients.flatMap(c => {
+      const entries: string[] = []
+      if (c.legalName) entries.push(c.legalName.trim().toUpperCase())
+      if (!c.legalName) entries.push(c.companyName.trim().toUpperCase())
+      return entries
+    })
+  )
 
   // Assign file to hidden input AFTER the preview form renders (fileInputRef is null before that)
   useEffect(() => {
@@ -141,6 +156,15 @@ export function ImportForm() {
       const withoutCode = dataRows.length - tcs.length
       const intraDups = tcs.length - uniqueTCs.size
 
+      // Detect unmatched origins (unique NOMBRE CORTO DE ORIGEN not in knownOrigins)
+      const allOrigins = dataRows
+        .map(r => String(r['NOMBRE CORTO DE ORIGEN'] ?? '').trim())
+        .filter(Boolean)
+      const uniqueOrigins = [...new Set(allOrigins.map(o => o.toUpperCase()))]
+      const unmatchedOrigins = uniqueOrigins
+        .filter(o => !knownOrigins.has(o))
+        .map(o => allOrigins.find(a => a.toUpperCase() === o) ?? o) // preserve original casing
+
       // Preview rows (first 10)
       const rows: PreviewRow[] = dataRows.slice(0, 10).map(r => ({
         trackingCode: String(r['COD DE RASTREO'] ?? '').trim() || null,
@@ -155,6 +179,7 @@ export function ImportForm() {
         file,
         rows,
         stats: { total: dataRows.length, toImport: uniqueTCs.size, withoutCode, intraDups },
+        unmatchedOrigins,
       })
     } catch {
       setLocal({ type: 'idle' })
@@ -171,7 +196,7 @@ export function ImportForm() {
 
   // ── Preview ──────────────────────────────────────────────────────────────
   if (local.type === 'preview') {
-    const { file, rows, stats } = local
+    const { file, rows, stats, unmatchedOrigins } = local
     const omitted = stats.withoutCode + stats.intraDups
 
     return (
@@ -254,6 +279,33 @@ export function ImportForm() {
             </p>
           )}
         </div>
+
+        {/* Alerta de orígenes sin cliente registrado */}
+        {unmatchedOrigins.length > 0 && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              {unmatchedOrigins.length === 1
+                ? '1 origen sin cliente registrado'
+                : `${unmatchedOrigins.length} orígenes sin cliente registrado`}
+            </div>
+            <p className="text-xs text-amber-700">
+              Los siguientes valores en <strong>NOMBRE CORTO DE ORIGEN</strong> no coinciden con ninguna
+              razón social registrada. Las guías de estos orígenes se importarán <strong>sin asignar a un cliente</strong>.
+              Puedes continuar o cancelar para agregar/corregir los clientes primero.
+            </p>
+            <ul className="flex flex-wrap gap-1.5 pt-1">
+              {unmatchedOrigins.map(o => (
+                <li
+                  key={o}
+                  className="px-2 py-0.5 text-xs font-mono bg-white border border-amber-300 rounded text-amber-900"
+                >
+                  {o}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {serverState.status === 'error' && (
           <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 px-3 py-2.5 rounded-lg">
