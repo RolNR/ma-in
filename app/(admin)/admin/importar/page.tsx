@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Importar guías' }
 
 export default async function ImportarPage() {
