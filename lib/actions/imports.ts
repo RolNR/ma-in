@@ -145,7 +145,7 @@ export async function importShipments(
       clientId,
       folioInterno: str(row['FOLIO INTERNO']),
       guideType: str(row['TIPO DE SERVICIO']),
-      externalGuideNo: str(row['NUM GUIA']),
+      externalGuideNo: str(row['NUM GUIA']) ?? trackingCode,
       senderName,
       destCity: str(row['DESTINO']),
       status: normalizeStatus(row['STATUS']),

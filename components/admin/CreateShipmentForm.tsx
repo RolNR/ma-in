@@ -265,6 +265,31 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
           <Package className="w-3.5 h-3.5" />
           Código de rastreo y status se asignan automáticamente
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className={labelClass}>
+              Núm. guía carrier
+              <span className="ml-1 text-xs text-gray-400">(opcional)</span>
+            </label>
+            <input
+              name="externalGuideNo"
+              className={inputClass}
+              placeholder="Ej. 1234567890"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>
+              Folio interno
+              <span className="ml-1 text-xs text-gray-400">(opcional)</span>
+            </label>
+            <input
+              name="folioInterno"
+              className={inputClass}
+              placeholder="Ej. F-2024-001"
+            />
+          </div>
+        </div>
       </div>
 
       {/* ── Cliente ───────────────────────────────────────────── */}
