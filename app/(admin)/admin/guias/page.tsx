@@ -13,8 +13,30 @@ interface PageProps {
   searchParams: Promise<{ status?: string; q?: string; page?: string; archived?: string }>
 }
 
+const AUTO_EXPIRE_DAYS = 30
+
+async function expireStaleShipments() {
+  const cutoff = new Date(Date.now() - AUTO_EXPIRE_DAYS * 86_400_000)
+  const toExpire = await db.shipment.findMany({
+    where: { status: 'PENDIENTE', archived: false, updatedAt: { lt: cutoff } },
+    select: { id: true },
+  })
+  if (toExpire.length === 0) return
+  const ids = toExpire.map(s => s.id)
+  await db.$transaction([
+    db.shipment.updateMany({ where: { id: { in: ids } }, data: { status: 'CADUCADA' } }),
+    db.shipmentEvent.createMany({
+      data: ids.map(shipmentId => ({
+        shipmentId,
+        status: 'CADUCADA',
+        description: `Guía expirada automáticamente tras ${AUTO_EXPIRE_DAYS} días sin movimiento.`,
+      })),
+    }),
+  ])
+}
+
 export default async function GuiasPage({ searchParams }: PageProps) {
-  const [params, session] = await Promise.all([searchParams, auth()])
+  const [params, session] = await Promise.all([searchParams, auth(), expireStaleShipments()])
   const isAdmin = session?.user.role === 'admin'
   const status   = params.status   || ''
   const q        = params.q        || ''
