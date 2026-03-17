@@ -5,8 +5,9 @@ import { Button, Input } from '@/components/ui'
 import { validateTrackingForm } from '@/lib/validation'
 import {
   Search, Package, Truck, CheckCircle2, AlertCircle,
-  XCircle, Clock, Navigation, Zap, RefreshCw,
+  XCircle, Clock, Navigation, Zap, RefreshCw, ExternalLink,
 } from 'lucide-react'
+import { getCarrierTrackingUrl } from '@/lib/carriers'
 import type { LucideIcon } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ interface TrackingResult {
   content: string | null
   date: string
   carrier: string
+  externalGuideNo: string | null
   events: TrackingEvent[]
 }
 
@@ -276,6 +278,7 @@ export function TrackingForm() {
   const flowStatus = result ? FLOW.find(s => s.key === result.status) : null
   const terminalStatus = result ? TERMINAL[result.status] : null
   const isExpress = result?.guideType?.toLowerCase().includes('express')
+  const carrierTrackingUrl = result ? getCarrierTrackingUrl(result.carrier, result.externalGuideNo) : null
 
   return (
     <div>
@@ -338,6 +341,17 @@ export function TrackingForm() {
                 <p className="text-xs text-gray-500 mb-0.5">Código de rastreo</p>
                 <p className="text-lg font-bold text-gray-900 font-mono">{result.trackingCode}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{result.carrier}</p>
+                {carrierTrackingUrl && (
+                  <a
+                    href={carrierTrackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 font-medium mt-1 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Rastrear en {result.carrier}
+                  </a>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {result.guideType && (

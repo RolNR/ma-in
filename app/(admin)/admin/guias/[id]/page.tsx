@@ -10,6 +10,7 @@ import { EvidenceGallery } from '@/components/admin/EvidenceGallery'
 import { ArrowLeft, Printer, MapPin, Package, CalendarDays, User, Building2, ArrowRight, Layers, ArchiveIcon, Navigation, Phone } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 import { formatDateOnly } from '@/lib/utils'
+import { getCarrierTrackingUrl } from '@/lib/carriers'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -66,6 +67,8 @@ export default async function GuiaDetailPage({ params }: PageProps) {
 
   const batchSize = batchSiblings.length + 1 // siblings + this guide
 
+  const carrierTrackingUrl = getCarrierTrackingUrl(shipment.carrier.name, shipment.externalGuideNo)
+
   const originAddr = [shipment.originStreet, shipment.originCity, shipment.originState, shipment.originPostal ? `CP ${shipment.originPostal}` : null].filter(Boolean).join(', ')
   const destAddr   = [shipment.destStreet,   shipment.destCity,   shipment.destState,   shipment.destPostal   ? `CP ${shipment.destPostal}`   : null].filter(Boolean).join(', ')
   const mapsUrl    = destAddr ? `https://maps.google.com/?q=${encodeURIComponent(destAddr)}` : null
@@ -102,6 +105,16 @@ export default async function GuiaDetailPage({ params }: PageProps) {
               )}
             </div>
             <p className="text-gray-500 mt-1">{shipment.carrier.name}</p>
+            {carrierTrackingUrl && (
+              <a
+                href={carrierTrackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 font-medium mt-0.5 transition-colors"
+              >
+                <ArrowRight className="w-3 h-3" /> Rastrear en {shipment.carrier.name}
+              </a>
+            )}
             {shipment.client && (
               <Link href={`/admin/clientes/${shipment.client.id}`} className="text-sm text-primary-600 hover:underline">
                 {shipment.client.companyName}

@@ -4,7 +4,8 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { ShipmentTimeline } from '@/components/admin/ShipmentTimeline'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { getCarrierTrackingUrl } from '@/lib/carriers'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 import { formatDateOnly } from '@/lib/utils'
 
@@ -32,6 +33,8 @@ export default async function PortalGuiaDetailPage({ params }: PageProps) {
 
   if (!shipment) notFound()
 
+  const carrierTrackingUrl = getCarrierTrackingUrl(shipment.carrier.name, shipment.externalGuideNo)
+
   const rows: [string, string | null | undefined][] = [
     ['Código de rastreo', shipment.trackingCode],
     ['Carrier', shipment.carrier.name],
@@ -55,6 +58,16 @@ export default async function PortalGuiaDetailPage({ params }: PageProps) {
           <div className="min-w-0">
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 font-mono break-all">{shipment.trackingCode}</h1>
             <p className="text-gray-500 mt-1">{shipment.carrier.name}</p>
+            {carrierTrackingUrl && (
+              <a
+                href={carrierTrackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 font-medium mt-0.5 transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" /> Rastrear en {shipment.carrier.name}
+              </a>
+            )}
           </div>
           <div className="ml-auto shrink-0">
             <StatusBadge status={shipment.status as ShipmentStatus} />
