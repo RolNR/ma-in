@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { StatusBadge } from './StatusBadge'
 import { Package, ChevronRight, ChevronDown, Archive, ArchiveRestore, Trash2, Loader2, AlertTriangle, X } from 'lucide-react'
 import { bulkArchiveShipments, bulkDeleteShipments, bulkUpdateStatus } from '@/lib/actions/shipments'
+import { formatDateOnly } from '@/lib/utils'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
 interface Shipment {
@@ -65,7 +66,7 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
   const [open, setOpen] = useState(false)
   const first = batch.shipments[0]
   const dest = [first.destCity, first.destState].filter(Boolean).join(', ') || '—'
-  const date = new Date(first.shipmentDate).toLocaleDateString('es-MX')
+  const date = formatDateOnly(first.shipmentDate)
   const batchIds = batch.shipments.map(s => s.id)
   const allChecked = batchIds.every(id => selected.has(id))
   const someChecked = batchIds.some(id => selected.has(id))
@@ -119,7 +120,7 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
           <td className={`${cell} text-gray-700`}>{s.senderName ?? '—'}</td>
           <td className={`${cell} text-gray-500`}>{[s.destCity, s.destState].filter(Boolean).join(', ') || '—'}</td>
           <td className={cell}><StatusBadge status={s.status as ShipmentStatus} /></td>
-          <td className={`${cell} text-gray-500`}>{new Date(s.shipmentDate).toLocaleDateString('es-MX')}</td>
+          <td className={`${cell} text-gray-500`}>{formatDateOnly(s.shipmentDate)}</td>
         </tr>
       ))}
     </>
@@ -396,7 +397,7 @@ export function ShipmentsTable({ shipments, isAdmin, showArchived = false }: Shi
                   <td className={`${cell} text-gray-700`}>{row.shipment.senderName ?? '—'}</td>
                   <td className={`${cell} text-gray-500`}>{[row.shipment.destCity, row.shipment.destState].filter(Boolean).join(', ') || '—'}</td>
                   <td className={cell}><StatusBadge status={row.shipment.status as ShipmentStatus} /></td>
-                  <td className={`${cell} text-gray-500`}>{new Date(row.shipment.shipmentDate).toLocaleDateString('es-MX')}</td>
+                  <td className={`${cell} text-gray-500`}>{formatDateOnly(row.shipment.shipmentDate)}</td>
                 </tr>
               ) : (
                 <BatchRow

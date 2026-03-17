@@ -34,6 +34,9 @@ export function ScanForm({ shipmentId, currentStatus, currentReceivedBy }: Props
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    // Sync intrinsic size to display size to prevent scaling distortion
+    canvas.width = Math.floor(canvas.getBoundingClientRect().width)
+    canvas.height = 120
     const ctx = canvas.getContext('2d')!
     ctx.strokeStyle = '#1a1a1a'
     ctx.lineWidth = 2.5
@@ -194,13 +197,11 @@ export function ScanForm({ shipmentId, currentStatus, currentReceivedBy }: Props
         </div>
         <canvas
           ref={canvasRef}
-          width={340}
-          height={120}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           className="w-full border-2 border-dashed border-gray-300 rounded-xl bg-white touch-none cursor-crosshair"
-          style={{ touchAction: 'none' }}
+          style={{ height: 120, touchAction: 'none' }}
         />
         {!hasSig && (
           <p className="text-xs text-gray-400 mt-1 text-center">Dibuja la firma arriba</p>

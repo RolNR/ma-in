@@ -9,6 +9,7 @@ import { ShipmentActions } from '@/components/admin/ShipmentActions'
 import { EvidenceGallery } from '@/components/admin/EvidenceGallery'
 import { ArrowLeft, Printer, MapPin, Package, CalendarDays, User, Building2, ArrowRight, Layers, ArchiveIcon, Navigation, Phone } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
+import { formatDateOnly } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -202,7 +203,7 @@ export default async function GuiaDetailPage({ params }: PageProps) {
                 <CalendarDays className="w-3.5 h-3.5" /> Clasificación
               </h2>
               <div className="space-y-4">
-                <DetailRow label="Fecha de envío" value={new Date(shipment.shipmentDate).toLocaleDateString('es-MX', { dateStyle: 'long' })} />
+                <DetailRow label="Fecha de envío" value={formatDateOnly(shipment.shipmentDate, { dateStyle: 'long' })} />
                 <DetailRow label="Folio interno"  value={shipment.folioInterno} />
                 <DetailRow label="Núm. guía ext." value={shipment.externalGuideNo} />
                 <DetailRow label="Recibido por"   value={shipment.receivedBy} />

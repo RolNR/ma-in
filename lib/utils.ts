@@ -55,6 +55,16 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
 }
 
 /**
+ * Formatea un campo @db.Date (solo fecha, sin hora).
+ * Fuerza timeZone: 'UTC' para evitar desplazamiento de día por timezone del servidor/cliente,
+ * ya que Prisma devuelve estos valores como medianoche UTC.
+ */
+export function formatDateOnly(date: Date | string, options: Intl.DateTimeFormatOptions = {}): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('es-MX', { ...options, timeZone: 'UTC' })
+}
+
+/**
  * Trunca un texto a un número máximo de caracteres
  */
 export function truncate(text: string, maxLength: number): string {

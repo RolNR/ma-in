@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge'
 import { ShipmentTimeline } from '@/components/admin/ShipmentTimeline'
 import { ArrowLeft } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
+import { formatDateOnly } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ trackingCode: string }>
@@ -34,7 +35,7 @@ export default async function PortalGuiaDetailPage({ params }: PageProps) {
   const rows: [string, string | null | undefined][] = [
     ['Código de rastreo', shipment.trackingCode],
     ['Carrier', shipment.carrier.name],
-    ['Fecha de envío', new Date(shipment.shipmentDate).toLocaleDateString('es-MX', { dateStyle: 'long' })],
+    ['Fecha de envío', formatDateOnly(shipment.shipmentDate, { dateStyle: 'long' })],
     ['Remitente', shipment.senderName],
     ['Ciudad origen', [shipment.originCity, shipment.originState].filter(Boolean).join(', ')],
     ['Destinatario', shipment.recipientName],

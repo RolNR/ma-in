@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { db } from '@/lib/db'
 import QRCode from 'qrcode'
 import { PrintButton } from './PrintButton'
+import { formatDateOnly } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -45,9 +46,7 @@ export default async function ImprimirPage({ params }: PageProps) {
   })
 
   const guideType = shipment.guideType?.toUpperCase() || 'PAQUETE'
-  const date = new Date(shipment.shipmentDate).toLocaleDateString('es-MX', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-  })
+  const date = formatDateOnly(shipment.shipmentDate, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   return (
     <>

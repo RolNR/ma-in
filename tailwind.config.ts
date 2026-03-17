@@ -46,21 +46,31 @@ const config: Config = {
         'gradient-corporate': 'linear-gradient(135deg, #138A6F 0%, #0F6E59 100%)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
+        'fade-in':      'fadeIn 0.5s ease-in-out',
+        'slide-up':     'slideUp 0.5s ease-out',
+        'slide-down':   'slideDown 0.3s ease-out',
+        'slide-in-left':'slideInLeft 0.65s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'fade-up':      'fadeUp 0.6s ease-out 0.1s both',
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0' },
+          '0%':   { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%':   { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '0%':   { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideInLeft: {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        fadeUp: {
+          '0%':   { opacity: '0', transform: 'translateY(40px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },

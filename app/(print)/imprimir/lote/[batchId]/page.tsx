@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { db } from '@/lib/db'
 import QRCode from 'qrcode'
 import { PrintButton } from '@/app/(print)/imprimir/[id]/PrintButton'
+import { formatDateOnly } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ batchId: string }>
@@ -75,9 +76,7 @@ export default async function ImprimirLotePage({ params }: PageProps) {
       {/* One guide card per page */}
       {batch.shipments.map((shipment, i) => {
         const guideType = shipment.guideType?.toUpperCase() || 'PAQUETE'
-        const date = new Date(shipment.shipmentDate).toLocaleDateString('es-MX', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-        })
+        const date = formatDateOnly(shipment.shipmentDate, { day: '2-digit', month: '2-digit', year: 'numeric' })
         const isLast = i === batch.shipments.length - 1
 
         return (

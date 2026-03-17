@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { StatsCard } from '@/components/admin/StatsCard'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { Package, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react'
+import { formatDateOnly } from '@/lib/utils'
 
 export const metadata = { title: 'Mi Panel — MA-IN' }
 
@@ -86,7 +87,7 @@ export default async function PortalDashboardPage() {
                       <StatusBadge status={s.status as Parameters<typeof StatusBadge>[0]['status']} />
                     </td>
                     <td className="py-3 px-4 text-gray-500 hidden md:table-cell">
-                      {new Date(s.shipmentDate).toLocaleDateString('es-MX')}
+                      {formatDateOnly(s.shipmentDate)}
                     </td>
                   </tr>
                 ))}

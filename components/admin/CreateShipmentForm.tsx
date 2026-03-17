@@ -395,7 +395,7 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
             <input
               name="shipmentDate"
               type="date"
-              defaultValue={new Date().toISOString().slice(0, 10)}
+              defaultValue={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
               className={inputClass}
             />
           </div>
