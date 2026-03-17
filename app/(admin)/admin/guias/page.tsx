@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { ShipmentsTable } from '@/components/admin/ShipmentsTable'
-import { ChevronLeft, ChevronRight, Plus, Archive } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Archive, Download } from 'lucide-react'
 import Link from 'next/link'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
@@ -62,6 +62,12 @@ export default async function GuiasPage({ searchParams }: PageProps) {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
+  const exportParams = new URLSearchParams()
+  if (status) exportParams.set('status', status)
+  if (q) exportParams.set('q', q)
+  if (showArchived) exportParams.set('archived', '1')
+  const exportHref = `/api/admin/guias/export?${exportParams.toString()}`
+
   function buildHref(overrides: Record<string, string | undefined>) {
     const p = new URLSearchParams()
     if (status) p.set('status', status)
@@ -84,6 +90,13 @@ export default async function GuiasPage({ searchParams }: PageProps) {
           <p className="text-gray-500 mt-1">{total} resultados</p>
         </div>
         <div className="flex items-center gap-3">
+          <a
+            href={exportHref}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+            title={`Exportar ${total} guías a Excel`}
+          >
+            <Download className="w-4 h-4" /> Excel
+          </a>
           <Link
             href={showArchived ? '/admin/guias' : '/admin/guias?archived=1'}
             className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${

@@ -3,14 +3,22 @@ import { StatsCard } from '@/components/admin/StatsCard'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { ActivityChart } from '@/components/admin/ActivityChart'
 import { StatusDonut } from '@/components/admin/StatusDonut'
-import { Package, TrendingUp, CheckCircle, Truck, ArrowRight } from 'lucide-react'
+import { Package, TrendingUp, CheckCircle, Truck, ArrowRight, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
+import { formatDateOnly } from '@/lib/utils'
 
 export const metadata = { title: 'Dashboard' }
 
 function toDateKey(d: Date) {
   return d.toISOString().slice(0, 10)
+}
+
+// Días sin movimiento a partir de los cuales una guía se considera estancada
+const STALE_DAYS: Partial<Record<ShipmentStatus, number>> = {
+  PENDIENTE:          5,
+  EN_RUTA:            3,
+  EN_PROCESO_ENTREGA: 2,
 }
 
 async function getStats() {
@@ -21,7 +29,13 @@ async function getStats() {
   thirtyDaysAgo.setDate(now.getDate() - 29)
   thirtyDaysAgo.setHours(0, 0, 0, 0)
 
-  const [total, thisMonth, byStatus, dailyRaw, inTransit, topClientsRaw] = await Promise.all([
+  const staleConditions = Object.entries(STALE_DAYS).map(([status, days]) => ({
+    status: status as ShipmentStatus,
+    archived: false,
+    updatedAt: { lt: new Date(now.getTime() - days * 86_400_000) },
+  }))
+
+  const [total, thisMonth, byStatus, dailyRaw, inTransit, topClientsRaw, staleShipments] = await Promise.all([
     db.shipment.count(),
     db.shipment.count({ where: { shipmentDate: { gte: startOfMonth } } }),
     db.shipment.groupBy({ by: ['status'], _count: { id: true } }),
@@ -52,6 +66,20 @@ async function getStats() {
       orderBy: { _count: { id: 'desc' } },
       take: 5,
     }),
+    db.shipment.findMany({
+      where: { OR: staleConditions },
+      select: {
+        id: true,
+        trackingCode: true,
+        status: true,
+        updatedAt: true,
+        shipmentDate: true,
+        client: { select: { companyName: true } },
+        destCity: true,
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: 8,
+    }),
   ])
 
   // Client names
@@ -78,6 +106,12 @@ async function getStats() {
   const statusMap = Object.fromEntries(byStatus.map(s => [s.status, s._count.id]))
   const inTransitCount = (statusMap['EN_RUTA'] ?? 0) + (statusMap['EN_PROCESO_ENTREGA'] ?? 0)
 
+  // Calculate days stale for each shipment
+  const staleWithDays = staleShipments.map(s => ({
+    ...s,
+    daysStale: Math.floor((now.getTime() - s.updatedAt.getTime()) / 86_400_000),
+  }))
+
   return {
     total,
     thisMonth,
@@ -92,13 +126,14 @@ async function getStats() {
       name:  clientMap[c.clientId!] ?? '—',
       count: c._count.id,
     })),
+    staleShipments: staleWithDays,
   }
 }
 
 export default async function DashboardPage() {
   const {
     total, thisMonth, inTransitCount, delivered,
-    statusData, activityData, inTransit, topClients,
+    statusData, activityData, inTransit, topClients, staleShipments,
   } = await getStats()
 
   const topMax = topClients[0]?.count || 1
@@ -109,6 +144,42 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 mt-1">Resumen de operaciones</p>
       </div>
+
+      {/* ── Alertas de guías estancadas ────────────────────────── */}
+      {staleShipments.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <h2 className="text-sm font-semibold text-amber-800">
+              {staleShipments.length} {staleShipments.length === 1 ? 'guía estancada' : 'guías estancadas'}
+            </h2>
+            <span className="text-xs text-amber-600 ml-1">— sin actualización por más días de lo esperado</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {staleShipments.map(s => (
+              <Link
+                key={s.id}
+                href={`/admin/guias/${s.id}`}
+                className="flex items-center justify-between bg-white border border-amber-100 rounded-lg px-3 py-2.5 hover:border-amber-300 transition-colors group"
+              >
+                <div className="min-w-0">
+                  <p className="font-mono text-sm font-semibold text-amber-800 group-hover:underline truncate">
+                    {s.trackingCode}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {s.client?.companyName ?? 'Sin cliente'}
+                    {s.destCity ? ` · ${s.destCity}` : ''}
+                    {' · '}{formatDateOnly(s.shipmentDate)}
+                  </p>
+                </div>
+                <span className="ml-3 shrink-0 text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  {s.daysStale}d
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Stat cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
