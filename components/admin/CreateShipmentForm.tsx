@@ -191,11 +191,19 @@ function ContactQuickFill({ contacts, nameRef, streetRef, cityRef, stateRef, pos
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+const INTERNAL_CARRIER_NAME = 'MA-IN'
+
 export function CreateShipmentForm({ carriers, clients }: Props) {
   const [state, formAction] = useFormState(createShipment, { status: 'idle' })
   const [quantity, setQuantity] = useState(1)
   const [selectedClientId, setSelectedClientId] = useState('')
   const [contacts, setContacts] = useState<ContactItem[]>([])
+
+  const defaultCarrier = carriers.find(c => c.name === INTERNAL_CARRIER_NAME)
+  const [selectedCarrierId, setSelectedCarrierId] = useState<string>(
+    defaultCarrier ? String(defaultCarrier.id) : ''
+  )
+  const isExternalCarrier = carriers.find(c => String(c.id) === selectedCarrierId)?.name !== INTERNAL_CARRIER_NAME
 
   useEffect(() => {
     if (!selectedClientId) { setContacts([]); return }
@@ -238,7 +246,13 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
 
           <div>
             <label className={labelClass}>Carrier <span className="text-red-500">*</span></label>
-            <select name="carrierId" required className={inputClass}>
+            <select
+              name="carrierId"
+              required
+              className={inputClass}
+              value={selectedCarrierId}
+              onChange={e => setSelectedCarrierId(e.target.value)}
+            >
               <option value="">Selecciona...</option>
               {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -266,30 +280,32 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
           Código de rastreo y status se asignan automáticamente
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <label className={labelClass}>
-              Núm. guía carrier
-              <span className="ml-1 text-xs text-gray-400">(opcional)</span>
-            </label>
-            <input
-              name="externalGuideNo"
-              className={inputClass}
-              placeholder="Ej. 1234567890"
-            />
+        {isExternalCarrier && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className={labelClass}>
+                Núm. guía carrier
+                <span className="ml-1 text-xs text-gray-400">(opcional)</span>
+              </label>
+              <input
+                name="externalGuideNo"
+                className={inputClass}
+                placeholder="Ej. 1234567890"
+              />
+            </div>
+            <div>
+              <label className={labelClass}>
+                Folio interno
+                <span className="ml-1 text-xs text-gray-400">(opcional)</span>
+              </label>
+              <input
+                name="folioInterno"
+                className={inputClass}
+                placeholder="Ej. F-2024-001"
+              />
+            </div>
           </div>
-          <div>
-            <label className={labelClass}>
-              Folio interno
-              <span className="ml-1 text-xs text-gray-400">(opcional)</span>
-            </label>
-            <input
-              name="folioInterno"
-              className={inputClass}
-              placeholder="Ej. F-2024-001"
-            />
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ── Cliente ───────────────────────────────────────────── */}
