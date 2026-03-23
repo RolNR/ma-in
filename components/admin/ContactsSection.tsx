@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createContact, deleteContact } from '@/lib/actions/contacts'
 import { Plus, Trash2, User, X, Loader2 } from 'lucide-react'
+import { CPInput } from './CPInput'
 
 export interface ContactItem {
   id: number
@@ -29,6 +30,8 @@ export function ContactsSection({ clientId, contacts: initial }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const contactCityRef  = useRef<HTMLInputElement>(null)
+  const contactStateRef = useRef<HTMLInputElement>(null)
 
   function handleAdd(formData: FormData) {
     setError('')
@@ -83,16 +86,19 @@ export function ContactsSection({ clientId, contacts: initial }: Props) {
               <input name="street" className={inputClass} placeholder="Av. Reforma 123, Col. Centro" />
             </div>
             <div>
-              <label className={labelClass}>Código postal</label>
-              <input name="postal" className={inputClass} placeholder="62000" maxLength={10} />
+              <label className={labelClass}>
+                Código postal
+                <span className="ml-1 text-primary-500">→ autorrellena ciudad y estado</span>
+              </label>
+              <CPInput name="postal" cityRef={contactCityRef} stateRef={contactStateRef} />
             </div>
             <div>
               <label className={labelClass}>Ciudad</label>
-              <input name="city" className={inputClass} placeholder="Cuernavaca" />
+              <input ref={contactCityRef} name="city" className={inputClass} placeholder="Cuernavaca" />
             </div>
             <div>
               <label className={labelClass}>Estado</label>
-              <input name="state" className={inputClass} placeholder="Morelos" />
+              <input ref={contactStateRef} name="state" className={inputClass} placeholder="Morelos" />
             </div>
             <div>
               <label className={labelClass}>Teléfono</label>
