@@ -3,11 +3,19 @@
 import { useFormState, useFormStatus } from 'react-dom'
 import { useRef, useState, useEffect } from 'react'
 import { createShipment, type CreateShipmentState } from '@/lib/actions/shipments'
-import { CheckCircle2, Loader2, Package, MapPin, BookUser } from 'lucide-react'
+import { CheckCircle2, Loader2, Package, BookUser } from 'lucide-react'
 import Link from 'next/link'
+import { CPInput } from './CPInput'
 
 interface Carrier { id: number; name: string }
-interface Client  { id: number; companyName: string }
+interface Client  {
+  id: number
+  companyName: string
+  street: string | null
+  city: string | null
+  state: string | null
+  postal: string | null
+}
 interface Props   { carriers: Carrier[]; clients: Client[] }
 
 interface ContactItem {
@@ -72,71 +80,6 @@ function SuccessView({ state }: { state: Extract<CreateShipmentState, { status: 
           Crear más
         </button>
       </div>
-    </div>
-  )
-}
-
-// ─── CP Lookup ────────────────────────────────────────────────────────────────
-
-interface CPResult { city: string; state: string; abbr: string }
-
-async function lookupCP(cp: string): Promise<CPResult | null> {
-  try {
-    const res = await fetch(`https://api.zippopotam.us/MX/${cp}`)
-    if (!res.ok) return null
-    const data = await res.json()
-    const place = data.places?.[0]
-    if (!place) return null
-    return {
-      city: place['place name'] ?? '',
-      state: place['state'] ?? '',
-      abbr: place['state abbreviation'] ?? '',
-    }
-  } catch {
-    return null
-  }
-}
-
-// ─── CP Input with autocomplete ───────────────────────────────────────────────
-
-interface CPInputProps {
-  name: string
-  cityRef: React.RefObject<HTMLInputElement | null>
-  stateRef: React.RefObject<HTMLInputElement | null>
-  abbrRef?: React.RefObject<HTMLInputElement | null>
-}
-
-function CPInput({ name, cityRef, stateRef, abbrRef }: CPInputProps) {
-  const [loading, setLoading] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const cp = e.target.value.trim()
-    if (timer.current) clearTimeout(timer.current)
-    if (cp.length !== 5) return
-    timer.current = setTimeout(async () => {
-      setLoading(true)
-      const result = await lookupCP(cp)
-      setLoading(false)
-      if (!result) return
-      if (cityRef.current)  cityRef.current.value  = result.city
-      if (stateRef.current) stateRef.current.value = result.state
-      if (abbrRef?.current) abbrRef.current.value  = result.abbr
-    }, 400)
-  }
-
-  return (
-    <div className="relative">
-      <input
-        name={name}
-        className={inputClass}
-        placeholder="Código postal"
-        maxLength={10}
-        onChange={handleChange}
-      />
-      {loading && (
-        <MapPin className="absolute right-3 top-2.5 w-4 h-4 text-primary-500 animate-pulse" />
-      )}
     </div>
   )
 }
@@ -214,17 +157,31 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
   }, [selectedClientId])
 
   // Refs para autofill de CP
-  const originCityRef  = useRef<HTMLInputElement>(null)
-  const originStateRef = useRef<HTMLInputElement>(null)
-  const destCityRef    = useRef<HTMLInputElement>(null)
-  const destStateRef   = useRef<HTMLInputElement>(null)
-  const destAbbrRef    = useRef<HTMLInputElement>(null)
+  const originCityRef   = useRef<HTMLInputElement>(null)
+  const originStateRef  = useRef<HTMLInputElement>(null)
+  const originPostalRef = useRef<HTMLInputElement>(null)
+  const destCityRef     = useRef<HTMLInputElement>(null)
+  const destStateRef    = useRef<HTMLInputElement>(null)
+  const destAbbrRef     = useRef<HTMLInputElement>(null)
 
   // Refs para autofill de contacto
-  const senderNameRef  = useRef<HTMLInputElement>(null)
-  const originStreetRef = useRef<HTMLInputElement>(null)
+  const senderNameRef    = useRef<HTMLInputElement>(null)
+  const originStreetRef  = useRef<HTMLInputElement>(null)
   const recipientNameRef = useRef<HTMLInputElement>(null)
-  const destStreetRef  = useRef<HTMLInputElement>(null)
+  const destStreetRef    = useRef<HTMLInputElement>(null)
+
+  // Auto-fill remitente desde el cliente cuando el carrier es MA-IN
+  useEffect(() => {
+    if (isExternalCarrier || !selectedClientId) return
+    const client = clients.find(c => String(c.id) === selectedClientId)
+    if (!client) return
+    if (senderNameRef.current)   senderNameRef.current.value   = client.companyName
+    if (originStreetRef.current) originStreetRef.current.value = client.street ?? ''
+    if (originCityRef.current)   originCityRef.current.value   = client.city ?? ''
+    if (originStateRef.current)  originStateRef.current.value  = client.state ?? ''
+    if (originPostalRef.current) originPostalRef.current.value = client.postal ?? ''
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClientId, isExternalCarrier])
 
   if (state.status === 'success') return <SuccessView state={state} />
 
@@ -323,6 +280,11 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
               <option value="">Sin asignar</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
             </select>
+            {!isExternalCarrier && selectedClientId && (
+              <p className="text-xs text-primary-600 mt-1">
+                Dirección del remitente rellenada desde el cliente.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -336,7 +298,7 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
           streetRef={originStreetRef}
           cityRef={originCityRef}
           stateRef={originStateRef}
-          postalRef={{ current: null }}
+          postalRef={originPostalRef}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -356,6 +318,7 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
               name="originPostal"
               cityRef={originCityRef}
               stateRef={originStateRef}
+              inputRef={originPostalRef}
             />
           </div>
           <div>

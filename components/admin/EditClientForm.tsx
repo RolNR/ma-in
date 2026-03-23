@@ -1,7 +1,9 @@
 'use client'
 
 import { useFormState } from 'react-dom'
+import { useRef } from 'react'
 import { updateClient } from '@/lib/actions/clients'
+import { CPInput } from './CPInput'
 
 interface EditClientFormProps {
   client: {
@@ -11,6 +13,10 @@ interface EditClientFormProps {
     contactName: string | null
     rfc: string | null
     phone: string | null
+    street: string | null
+    city: string | null
+    state: string | null
+    postal: string | null
   }
 }
 
@@ -22,6 +28,8 @@ const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
 
 export function EditClientForm({ client }: EditClientFormProps) {
   const [state, formAction] = useFormState(updateClient, initialState)
+  const cityRef  = useRef<HTMLInputElement>(null)
+  const stateRef = useRef<HTMLInputElement>(null)
 
   return (
     <form action={formAction} className="space-y-4">
@@ -76,6 +84,51 @@ export function EditClientForm({ client }: EditClientFormProps) {
             type="tel"
             defaultValue={client.phone ?? ''}
             className={inputClass}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Calle y número</label>
+          <input
+            name="street"
+            defaultValue={client.street ?? ''}
+            className={inputClass}
+            placeholder="Av. Reforma 123, Col. Centro"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            C.P.
+            <span className="ml-1 text-xs text-primary-500">→ autorrellena ciudad y estado</span>
+          </label>
+          <CPInput
+            name="postal"
+            cityRef={cityRef}
+            stateRef={stateRef}
+            defaultValue={client.postal ?? ''}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>Ciudad</label>
+          <input
+            ref={cityRef}
+            name="city"
+            defaultValue={client.city ?? ''}
+            className={inputClass}
+            placeholder="Ciudad"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>Estado</label>
+          <input
+            ref={stateRef}
+            name="state"
+            defaultValue={client.state ?? ''}
+            className={inputClass}
+            placeholder="Estado"
           />
         </div>
       </div>

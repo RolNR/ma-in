@@ -3,8 +3,9 @@
 import { useFormState } from 'react-dom'
 import { createClient } from '@/lib/actions/clients'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { CPInput } from './CPInput'
 
 const initialState = { status: 'idle' as const }
 
@@ -56,6 +57,8 @@ function PasswordSuccess({ password, clientId }: { password: string; clientId: n
 
 export function CreateClientForm() {
   const [state, formAction] = useFormState(createClient, initialState)
+  const cityRef  = useRef<HTMLInputElement>(null)
+  const stateRef = useRef<HTMLInputElement>(null)
 
   if (state.status === 'success') {
     return <PasswordSuccess password={state.password} clientId={state.clientId} />
@@ -98,6 +101,29 @@ export function CreateClientForm() {
         <div>
           <label className={labelClass}>Teléfono</label>
           <input name="phone" type="tel" className={inputClass} placeholder="55 1234 5678" />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={labelClass}>Calle y número</label>
+          <input name="street" className={inputClass} placeholder="Av. Reforma 123, Col. Centro" />
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            C.P.
+            <span className="ml-1 text-xs text-primary-500">→ autorrellena ciudad y estado</span>
+          </label>
+          <CPInput name="postal" cityRef={cityRef} stateRef={stateRef} />
+        </div>
+
+        <div>
+          <label className={labelClass}>Ciudad</label>
+          <input ref={cityRef} name="city" className={inputClass} placeholder="Ciudad" />
+        </div>
+
+        <div>
+          <label className={labelClass}>Estado</label>
+          <input ref={stateRef} name="state" className={inputClass} placeholder="Estado" />
         </div>
       </div>
 

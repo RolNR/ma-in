@@ -8,7 +8,7 @@ export const metadata = { title: 'Nueva guía' }
 export default async function NuevaGuiaPage() {
   const [carriers, clients] = await Promise.all([
     db.carrier.findMany({ where: { active: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-    db.client.findMany({ where: { active: true }, select: { id: true, companyName: true }, orderBy: { companyName: 'asc' } }),
+    db.client.findMany({ where: { active: true }, select: { id: true, companyName: true, street: true, city: true, state: true, postal: true }, orderBy: { companyName: 'asc' } }),
   ])
 
   return (

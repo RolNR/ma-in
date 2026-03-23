@@ -21,6 +21,10 @@ export async function createClient(
   const contactName = formData.get('contactName') as string | null
   const rfc = formData.get('rfc') as string | null
   const phone = formData.get('phone') as string | null
+  const street = formData.get('street') as string | null
+  const city = formData.get('city') as string | null
+  const state = formData.get('state') as string | null
+  const postal = formData.get('postal') as string | null
 
   if (!companyName?.trim()) return { status: 'error', message: 'El nombre de la empresa es requerido.' }
   if (!email?.trim()) return { status: 'error', message: 'El email es requerido.' }
@@ -49,6 +53,10 @@ export async function createClient(
           contactName: contactName?.trim() || null,
           rfc: rfc?.trim() || null,
           phone: phone?.trim() || null,
+          street: street?.trim() || null,
+          city: city?.trim() || null,
+          state: state?.trim() || null,
+          postal: postal?.trim() || null,
         },
       })
 
@@ -114,6 +122,10 @@ export async function updateClient(
   const contactName = formData.get('contactName') as string | null
   const rfc = formData.get('rfc') as string | null
   const phone = formData.get('phone') as string | null
+  const street = formData.get('street') as string | null
+  const city = formData.get('city') as string | null
+  const state = formData.get('state') as string | null
+  const postal = formData.get('postal') as string | null
 
   if (!id || isNaN(id)) return { status: 'error', message: 'ID inválido.' }
   if (!companyName?.trim()) return { status: 'error', message: 'El nombre de la empresa es requerido.' }
@@ -127,6 +139,10 @@ export async function updateClient(
         contactName: contactName?.trim() || null,
         rfc: rfc?.trim() || null,
         phone: phone?.trim() || null,
+        street: street?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim() || null,
+        postal: postal?.trim() || null,
       },
     })
 

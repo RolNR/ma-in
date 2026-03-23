@@ -32,6 +32,10 @@ model Client {
   email       String?    @db.VarChar(100)
   phone       String?    @db.VarChar(20)
   contactName String?    @map("contact_name") @db.VarChar(100)
+  street      String?    @db.VarChar(200)
+  city        String?    @db.VarChar(100)
+  state       String?    @db.VarChar(100)
+  postal      String?    @db.VarChar(10)
   active      Boolean    @default(true)
   createdAt   DateTime   @default(now()) @map("created_at")
   users       User[]

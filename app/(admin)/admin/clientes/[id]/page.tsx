@@ -88,6 +88,10 @@ export default async function ClienteDetailPage({ params }: PageProps) {
             contactName: client.contactName,
             rfc: client.rfc,
             phone: client.phone,
+            street: client.street,
+            city: client.city,
+            state: client.state,
+            postal: client.postal,
           }}
         />
       </div>
