@@ -109,7 +109,7 @@ function ContactQuickFill({ contacts, nameRef, streetRef, cityRef, stateRef, pos
   return (
     <div className="flex items-center gap-2 mb-3 p-2.5 bg-primary-50 border border-primary-100 rounded-lg">
       <BookUser className="w-3.5 h-3.5 text-primary-500 shrink-0" />
-      <span className="text-xs text-primary-700 font-medium whitespace-nowrap">Usar contacto:</span>
+      <span className="text-xs text-primary-700 font-medium whitespace-nowrap">Destinatario frecuente:</span>
       <select
         className="flex-1 text-xs border border-primary-200 rounded px-2 py-1 text-gray-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500"
         onChange={e => {
@@ -292,14 +292,6 @@ export function CreateShipmentForm({ carriers, clients }: Props) {
       {/* ── Remitente ─────────────────────────────────────────── */}
       <div>
         <SectionTitle>Remitente</SectionTitle>
-        <ContactQuickFill
-          contacts={contacts}
-          nameRef={senderNameRef}
-          streetRef={originStreetRef}
-          cityRef={originCityRef}
-          stateRef={originStateRef}
-          postalRef={originPostalRef}
-        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nombre</label>
