@@ -162,7 +162,7 @@ export const faqData: FAQItem[] = [
     id: 22,
     category: 'general',
     question: '¿Cómo puedo contactarlos?',
-    answer: 'Puedes contactarnos por: teléfono al (777) 123-4567, WhatsApp al mismo número, email a contacto@ma-in.mx, o visitarnos en nuestras oficinas en Cuernavaca, Morelos.',
+    answer: 'Puedes contactarnos por: teléfono al 777 304 5114, WhatsApp al mismo número, email a contacto@ma-in.mx, o visitarnos en nuestras oficinas en Cuernavaca, Morelos.',
   },
   {
     id: 23,
