@@ -50,16 +50,16 @@ export default function LoginPage() {
         style={{ background: 'linear-gradient(150deg, #22d4ab 0%, #138A6F 40%, #083728 100%)' }}
       >
         {/* Blobs decorativos */}
-        <div className="absolute w-[580px] h-[580px] rounded-full bg-white/5 -top-40 -right-40 pointer-events-none" />
-        <div className="absolute w-[380px] h-[380px] rounded-full bg-white/5 -bottom-24 -left-24 pointer-events-none" />
-        <div className="absolute w-[220px] h-[220px] rounded-full border border-white/10 top-1/3 right-1/4 pointer-events-none" />
+        <div className="bokeh-1 absolute w-[580px] h-[580px] rounded-full bg-white/5 -top-40 -right-40 pointer-events-none" />
+        <div className="bokeh-2 absolute w-[380px] h-[380px] rounded-full bg-white/5 -bottom-24 -left-24 pointer-events-none" />
+        <div className="bokeh-3 absolute w-[220px] h-[220px] rounded-full border border-white/10 top-1/3 right-1/4 pointer-events-none" />
         <div
-          className="absolute w-[120px] h-[120px] rounded-full pointer-events-none"
-          style={{ background: '#E1C357', opacity: 0.12, bottom: '30%', right: '12%', filter: 'blur(32px)' }}
+          className="bokeh-4 absolute w-[120px] h-[120px] rounded-full pointer-events-none"
+          style={{ background: '#E1C357', bottom: '30%', right: '12%', filter: 'blur(32px)' }}
         />
 
         {/* Logo top-left */}
-        <div className="relative z-10 p-9">
+        <div className="login-panel-enter relative z-10 p-9">
           <div className="flex items-center gap-3">
             <Image
               src="/logo.svg"
@@ -80,7 +80,7 @@ export default function LoginPage() {
         <div className="flex-1" />
 
         {/* Tagline bottom-left */}
-        <div className="relative z-10 p-9 pb-14">
+        <div className="login-tagline-enter relative z-10 p-9 pb-14">
           <h2 className="text-white text-[2.4rem] font-bold leading-tight">
             Tus envíos,<br />siempre bajo<br />control.
           </h2>
