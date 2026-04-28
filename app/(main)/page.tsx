@@ -105,12 +105,12 @@ export default function HomePage() {
               Todo lo que necesitas en un solo lugar
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Tres divisiones especializadas trabajando juntas para ofrecer
-              soluciones completas de logística y comercio.
+              Cuatro divisiones especializadas trabajando juntas para ofrecer
+              soluciones completas de logística, comercio y turismo.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {divisions.map((division) => (
               <DivisionCard
                 key={division.id}

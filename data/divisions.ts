@@ -11,6 +11,24 @@ export interface Division {
   features: string[]
 }
 
+export interface TravelService {
+  id: string
+  title: string
+  description: string
+  icon: string
+  features: string[]
+  comingSoon?: boolean
+}
+
+export interface TravelDestination {
+  id: string
+  name: string
+  state: string
+  description: string
+  highlight: string
+  image: string
+}
+
 export const divisions: Division[] = [
   {
     id: 'logistik',
@@ -55,6 +73,21 @@ export const divisions: Division[] = [
       'Vinos, licores y orgánicos',
       'Barras de alimentos y bebidas',
       'Espacios de convivencia',
+    ],
+  },
+  {
+    id: 'travel',
+    name: 'MA-IN Travel',
+    tagline: 'Turismo corporativo y familiar',
+    description: 'Rutas turísticas seguras y confiables. Más de 100 tours realizados hacia los destinos más hermosos de México, para grupos corporativos y familias.',
+    icon: 'plane',
+    href: ROUTES.travel.main,
+    color: 'primary',
+    features: [
+      'Rutas corporativas',
+      'Tours familiares',
+      'Cuernavaca ↔ AIFA',
+      '6 destinos activos',
     ],
   },
 ]
@@ -241,6 +274,92 @@ export const divisionDetails = {
       subtitle: 'Alimentos selectos, frescos y de temporada. Vinos, licores, orgánicos y más.',
     },
   },
+  travel: {
+    hero: {
+      title: 'Descubre México con MA‑IN Travel',
+      subtitle: 'Transporte turístico seguro y confiable. Rutas corporativas y familiares hacia los destinos más hermosos del país.',
+    },
+    stats: [
+      { value: '+100', label: 'Tours realizados' },
+      { value: '6', label: 'Destinos activos' },
+      { value: '100%', label: 'Viajes seguros' },
+      { value: '2', label: 'Tipos de ruta' },
+    ],
+    services: [
+      {
+        id: 'corporativo',
+        title: 'Rutas Corporativas',
+        description: 'Tours empresariales con transporte ejecutivo, agenda personalizada y servicio de primer nivel para equipos de trabajo.',
+        icon: 'briefcase',
+        features: ['Transporte ejecutivo', 'Agenda personalizada', 'Guía especializado', 'Facturación empresarial'],
+      },
+      {
+        id: 'familiar',
+        title: 'Rutas Familiares',
+        description: 'Viajes en familia cómodos y seguros hacia los destinos culturales más icónicos de México.',
+        icon: 'users',
+        features: ['Grupos reducidos', 'Vehículos espaciosos', 'Guía turístico', 'Itinerario flexible'],
+      },
+      {
+        id: 'aifa',
+        title: 'Cuernavaca ↔ AIFA',
+        description: 'Próximamente: traslados directos entre Cuernavaca y el Aeropuerto Internacional Felipe Ángeles, sin transbordos.',
+        icon: 'plane',
+        features: ['Sin transbordo', 'Salidas programadas', 'Equipaje incluido', 'Próximamente'],
+        comingSoon: true,
+      },
+    ] as TravelService[],
+    destinations: [
+      {
+        id: 'san-miguel',
+        name: 'San Miguel de Allende',
+        state: 'Guanajuato',
+        description: 'Ciudad colonial declarada Patrimonio de la Humanidad. Arte, arquitectura barroca y cultura vibrante.',
+        highlight: 'UNESCO',
+        image: 'https://images.unsplash.com/photo-1673217829921-bbc56d17dbf9?auto=format&fit=crop&w=1280&q=80',
+      },
+      {
+        id: 'guanajuato',
+        name: 'Guanajuato',
+        state: 'Guanajuato',
+        description: 'Callejones históricos, arquitectura colonial y el famoso Callejón del Beso.',
+        highlight: 'Colonial',
+        image: 'https://images.unsplash.com/photo-1733284463000-d25e4d5636c3?auto=format&fit=crop&w=1280&q=80',
+      },
+      {
+        id: 'puebla',
+        name: 'Puebla',
+        state: 'Puebla',
+        description: 'Gastronomía excepcional, talavera y uno de los centros históricos más bellos del país.',
+        highlight: 'Gastronomía',
+        image: 'https://plus.unsplash.com/premium_photo-1754211689945-94b31c4572db?auto=format&fit=crop&w=1280&q=80',
+      },
+      {
+        id: 'veracruz',
+        name: 'Veracruz',
+        state: 'Veracruz',
+        description: 'Puerto emblemático con historia, cultura jarocha, danzón y costas espectaculares.',
+        highlight: 'Puerto',
+        image: 'https://images.unsplash.com/photo-1648322987627-fc3f0bd99926?auto=format&fit=crop&w=1280&q=80',
+      },
+      {
+        id: 'oaxaca',
+        name: 'Oaxaca',
+        state: 'Oaxaca',
+        description: 'Diversidad cultural única, artesanías, mezcal y una cocina reconocida mundialmente.',
+        highlight: 'Cultural',
+        image: 'https://images.unsplash.com/photo-1562215589-b6d0ed3cfec8?auto=format&fit=crop&w=1280&q=80',
+      },
+      {
+        id: 'cdmx',
+        name: 'Ciudad de México',
+        state: 'CDMX',
+        description: 'La capital del país: Bellas Artes, Zócalo, museos de clase mundial y gastronomía sin igual.',
+        highlight: 'Capital',
+        image: 'https://images.unsplash.com/photo-1573485905785-f8f87e7bf82c?auto=format&fit=crop&w=1280&q=80',
+      },
+    ] as TravelDestination[],
+  },
 }
 
-export type DivisionId = 'logistik' | 'pack' | 'market'
+export type DivisionId = 'logistik' | 'pack' | 'market' | 'travel'

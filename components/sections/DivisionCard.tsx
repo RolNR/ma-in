@@ -6,6 +6,7 @@ import {
   MapPin,
   Package,
   ShoppingCart,
+  Plane,
   ArrowRight,
 } from 'lucide-react'
 import type { Division } from '@/data/divisions'
@@ -20,6 +21,7 @@ const iconMap = {
   'map-pin': MapPin,
   package: Package,
   'shopping-cart': ShoppingCart,
+  plane: Plane,
 }
 
 export function DivisionCard({ division, variant = 'default' }: DivisionCardProps) {

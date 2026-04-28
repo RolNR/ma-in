@@ -59,6 +59,9 @@ export const ROUTES = {
   market: {
     main: '/market',
   },
+  travel: {
+    main: '/travel',
+  },
   // Soporte
   support: {
     main: '/support',
@@ -85,6 +88,7 @@ export const MAIN_NAV = [
   { label: 'Logistik', href: ROUTES.logistik.main },
   { label: 'Pack', href: ROUTES.pack.main },
   { label: 'Market', href: ROUTES.market.main },
+  { label: 'Travel', href: ROUTES.travel.main },
   { label: 'Soporte', href: ROUTES.support.main },
 ] as const
 
@@ -98,6 +102,10 @@ export const DIVISION_NAV = {
     { label: 'Catálogo', href: ROUTES.pack.catalog },
     { label: 'Destacados', href: ROUTES.pack.featured },
     { label: 'Soluciones', href: ROUTES.pack.solutions },
+  ],
+  travel: [
+    { label: 'Destinos', href: `${ROUTES.travel.main}#destinos` },
+    { label: 'Solicitar información', href: `${ROUTES.travel.main}#contacto` },
   ],
 } as const
 
@@ -114,6 +122,7 @@ export const FOOTER_NAV = {
     { label: 'Logistik', href: ROUTES.logistik.main },
     { label: 'Pack', href: ROUTES.pack.main },
     { label: 'Market', href: ROUTES.market.main },
+    { label: 'Travel', href: ROUTES.travel.main },
   ],
   soporte: [
     { label: 'FAQ', href: ROUTES.support.faq },
