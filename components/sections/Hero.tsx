@@ -34,9 +34,9 @@ export function Hero({
   children,
 }: HeroProps) {
   const sizes = {
-    sm: 'py-16 md:py-20',
-    md: 'py-20 md:py-28',
-    lg: 'py-24 md:py-36',
+    sm: 'py-10 sm:py-14 md:py-20',
+    md: 'py-12 sm:py-16 md:py-24',
+    lg: 'py-[min(3.5rem,12vh)] sm:py-[min(5rem,12vh)] md:py-[min(7rem,13vh)] lg:py-[min(9rem,14vh)]',
   }
 
   const variants = {
@@ -81,17 +81,17 @@ export function Hero({
           )}
         >
           {subtitle && (
-            <p className="text-accent font-medium mb-4 animate-fade-in">
+            <p className="text-accent font-medium text-sm md:text-base mb-3 md:mb-4 animate-fade-in">
               {subtitle}
             </p>
           )}
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-slide-up">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 animate-slide-up">
             {title}
           </h1>
 
           {description && (
-            <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl animate-slide-up">
+            <p className="text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-2xl animate-slide-up">
               {description}
             </p>
           )}
@@ -99,7 +99,7 @@ export function Hero({
           {(primaryAction || secondaryAction) && (
             <div
               className={cn(
-                'flex flex-wrap gap-4',
+                'flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4',
                 variant === 'centered' && 'justify-center'
               )}
             >
