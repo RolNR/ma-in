@@ -31,6 +31,7 @@ export default function PackPage() {
           label: 'Soluciones empresariales',
           href: ROUTES.pack.solutions,
         }}
+        size="lg"
       />
 
       <div className="container-custom py-4">

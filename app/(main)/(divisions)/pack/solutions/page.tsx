@@ -74,7 +74,7 @@ export default function SolutionsPage() {
         title="Soluciones de Empaque por Industria"
         subtitle="MA-IN Pack"
         description="Cada industria tiene necesidades únicas. Conoce nuestras soluciones especializadas."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

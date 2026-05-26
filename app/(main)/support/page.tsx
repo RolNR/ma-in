@@ -50,7 +50,7 @@ export default function SupportPage() {
         title="Centro de Soporte"
         subtitle="MA-IN Soporte"
         description="Estamos aquí para ayudarte. Encuentra respuestas, ubicación y formas de contacto."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

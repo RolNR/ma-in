@@ -19,7 +19,7 @@ export default function FAQPage() {
         title="Preguntas Frecuentes"
         subtitle="Centro de Soporte"
         description="Encuentra respuestas rápidas a las dudas más comunes."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

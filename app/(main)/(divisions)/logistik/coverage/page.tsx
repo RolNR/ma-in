@@ -21,7 +21,7 @@ export default function CoveragePage() {
         title="Cobertura Nacional"
         subtitle="MA-IN Logistik"
         description="Llegamos a todo México con la red de distribución más extensa del país."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

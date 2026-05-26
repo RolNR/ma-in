@@ -21,7 +21,7 @@ export default function FeaturedPage() {
         title="Productos Destacados"
         subtitle="MA-IN Pack"
         description="Los productos más populares y mejor valorados por nuestros clientes."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

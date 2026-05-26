@@ -19,7 +19,7 @@ export default function LocationPage() {
         title="Nuestra Ubicación"
         subtitle="Centro de Soporte"
         description="Visítanos en nuestras oficinas en Cuernavaca, Morelos."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

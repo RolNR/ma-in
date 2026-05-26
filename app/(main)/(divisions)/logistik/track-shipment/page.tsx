@@ -18,7 +18,7 @@ export default function TrackShipmentPage() {
         title="Rastrear Envío"
         subtitle="MA-IN Logistik"
         description="Ingresa tu código de rastreo para conocer el estado de tu paquete."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

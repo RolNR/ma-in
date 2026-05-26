@@ -18,7 +18,7 @@ export default function CatalogPage() {
         title="Catálogo de Empaques"
         subtitle="MA-IN Pack"
         description="Encuentra el empaque perfecto para tu producto."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

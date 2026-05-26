@@ -39,6 +39,7 @@ export default function LogistikPage() {
           label: 'Ver cobertura',
           href: ROUTES.logistik.coverage,
         }}
+        size="lg"
       />
 
       {/* Breadcrumb */}

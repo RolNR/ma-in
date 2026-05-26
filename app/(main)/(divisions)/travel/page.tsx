@@ -42,6 +42,7 @@ export default function TravelPage() {
         description={hero.subtitle}
         primaryAction={{ label: 'Solicitar información', href: '#contacto' }}
         secondaryAction={{ label: 'Ver destinos', href: '#destinos' }}
+        size="lg"
       />
 
       {/* Breadcrumb */}

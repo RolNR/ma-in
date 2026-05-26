@@ -29,7 +29,7 @@ export default function ProcessPage() {
         title="Proceso de Envío"
         subtitle="MA-IN Logistik"
         description="Un proceso simple y transparente para que tus envíos lleguen a tiempo."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

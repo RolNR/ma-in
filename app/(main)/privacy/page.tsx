@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         title="Aviso de Privacidad"
         subtitle="Legal"
         description={`Última actualización: ${lastUpdated}`}
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

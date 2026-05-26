@@ -18,7 +18,7 @@ export default function ContactPage() {
         title="Contáctanos"
         subtitle="Centro de Soporte"
         description="Estamos aquí para ayudarte. Envíanos un mensaje y te responderemos pronto."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">

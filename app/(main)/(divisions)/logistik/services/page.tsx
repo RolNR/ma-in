@@ -37,7 +37,7 @@ export default function ServicesPage() {
         title="Servicios de Logística"
         subtitle="MA-IN Logistik"
         description="Descubre nuestra gama completa de servicios de transporte y distribución diseñados para impulsar tu negocio."
-        size="sm"
+        size="lg"
       />
 
       <div className="container-custom py-4">
