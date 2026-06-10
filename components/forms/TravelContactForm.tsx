@@ -1,23 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui'
-import { Send, CheckCircle } from 'lucide-react'
+import { submitTravelForm } from '@/lib/actions/travel'
+import { Send, CheckCircle, AlertCircle } from 'lucide-react'
 
 const fieldClass =
   'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-sm'
 
 export function TravelContactForm() {
   const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [isPending, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      setSubmitted(true)
-    }, 800)
+    setError('')
+    const formData = new FormData(e.currentTarget)
+
+    startTransition(async () => {
+      const result = await submitTravelForm(formData)
+      if (result.success) {
+        setSubmitted(true)
+      } else {
+        setError(result.error ?? 'Error al enviar la solicitud.')
+      }
+    })
   }
 
   if (submitted) {
@@ -26,7 +34,7 @@ export function TravelContactForm() {
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
           <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900">¡Mensaje enviado!</h3>
+        <h3 className="text-xl font-bold text-gray-900">¡Solicitud enviada!</h3>
         <p className="text-gray-600 max-w-sm">
           Recibimos tu solicitud. Un asesor de MA-IN Travel se pondrá en contacto
           contigo en menos de 24 horas.
@@ -40,18 +48,39 @@ export function TravelContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre completo *
           </label>
-          <input required type="text" className={fieldClass} placeholder="Tu nombre" />
+          <input
+            required
+            name="name"
+            type="text"
+            className={fieldClass}
+            placeholder="Tu nombre"
+            disabled={isPending}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Teléfono *
           </label>
-          <input required type="tel" className={fieldClass} placeholder="55 1234 5678" />
+          <input
+            required
+            name="phone"
+            type="tel"
+            className={fieldClass}
+            placeholder="55 1234 5678"
+            disabled={isPending}
+          />
         </div>
       </div>
 
@@ -59,7 +88,14 @@ export function TravelContactForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Correo electrónico *
         </label>
-        <input required type="email" className={fieldClass} placeholder="tu@correo.com" />
+        <input
+          required
+          name="email"
+          type="email"
+          className={fieldClass}
+          placeholder="tu@correo.com"
+          disabled={isPending}
+        />
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
@@ -67,7 +103,7 @@ export function TravelContactForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tipo de ruta *
           </label>
-          <select required className={fieldClass}>
+          <select required name="routeType" className={fieldClass} disabled={isPending}>
             <option value="">Seleccionar</option>
             <option value="corporativo">Ruta Corporativa</option>
             <option value="familiar">Ruta Familiar</option>
@@ -80,10 +116,12 @@ export function TravelContactForm() {
           </label>
           <input
             required
+            name="passengers"
             type="number"
             min="1"
             className={fieldClass}
             placeholder="Ej: 8"
+            disabled={isPending}
           />
         </div>
       </div>
@@ -92,7 +130,7 @@ export function TravelContactForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Destino de interés
         </label>
-        <select className={fieldClass}>
+        <select name="destination" className={fieldClass} disabled={isPending}>
           <option value="">Cualquier destino / aún no lo sé</option>
           <option value="san-miguel">San Miguel de Allende</option>
           <option value="guanajuato">Guanajuato</option>
@@ -106,7 +144,12 @@ export function TravelContactForm() {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Fecha tentativa
         </label>
-        <input type="date" className={fieldClass} />
+        <input
+          name="date"
+          type="date"
+          className={fieldClass}
+          disabled={isPending}
+        />
       </div>
 
       <div>
@@ -114,9 +157,11 @@ export function TravelContactForm() {
           Comentarios o preguntas
         </label>
         <textarea
+          name="comments"
           rows={3}
           className={fieldClass}
           placeholder="Cuéntanos más sobre lo que necesitas..."
+          disabled={isPending}
         />
       </div>
 
@@ -124,10 +169,10 @@ export function TravelContactForm() {
         type="submit"
         variant="primary"
         className="w-full"
-        disabled={loading}
+        disabled={isPending}
         rightIcon={<Send className="w-4 h-4" />}
       >
-        {loading ? 'Enviando…' : 'Solicitar información y costos'}
+        {isPending ? 'Enviando…' : 'Solicitar información y costos'}
       </Button>
 
       <p className="text-xs text-gray-500 text-center">

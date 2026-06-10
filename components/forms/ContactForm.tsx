@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button, Input, Textarea, Select } from '@/components/ui'
 import { validateContactForm, type ContactFormData } from '@/lib/validation'
+import { submitContactForm } from '@/lib/actions/contact'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 
 interface ContactFormProps {
@@ -30,6 +31,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<FormStatus>('idle')
+  const [serverError, setServerError] = useState('')
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -63,30 +65,17 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
     }
 
     setStatus('loading')
+    setServerError('')
 
-    try {
-      // Simulate API call - Replace with actual API endpoint
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+    const result = await submitContactForm(formData)
 
-      // In production, this would be:
-      // const response = await fetch('/api/contact', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // })
-      // if (!response.ok) throw new Error('Error al enviar')
-
+    if (result.success) {
       setStatus('success')
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-      })
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
       onSuccess?.()
-    } catch {
+    } else {
       setStatus('error')
+      setServerError(result.error ?? 'Error al enviar el mensaje.')
     }
   }
 
@@ -112,7 +101,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
       {status === 'error' && (
         <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-lg">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>Hubo un error al enviar el mensaje. Por favor intenta de nuevo.</p>
+          <p>{serverError || 'Hubo un error al enviar el mensaje. Por favor intenta de nuevo.'}</p>
         </div>
       )}
 

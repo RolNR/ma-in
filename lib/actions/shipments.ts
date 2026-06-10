@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { customAlphabet } from 'nanoid'
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
+import { notifyShipmentCreated, notifyShipmentStatus } from '@/lib/notifications'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
 
 // Alfanumérico sin caracteres confusos (0/O, 1/I)
@@ -78,6 +79,7 @@ export async function createShipment(
         }
         return s
       })
+      await notifyShipmentCreated(shipment.id)
       redirect(`/admin/guias/${shipment.id}`)
     }
 
@@ -138,6 +140,8 @@ export async function updateShipmentStatus(
       return { status: 'error', message: 'La guía ya tiene ese status.' }
     }
 
+    const prevStatus = current!.status
+
     await db.$transaction(async (tx) => {
       await tx.shipment.update({ where: { id: shipmentId }, data: { status } })
       await tx.shipmentEvent.create({
@@ -149,6 +153,8 @@ export async function updateShipmentStatus(
         },
       })
     })
+
+    await notifyShipmentStatus(shipmentId, prevStatus)
 
     revalidatePath(`/admin/guias/${shipmentId}`)
     return { status: 'success' }
