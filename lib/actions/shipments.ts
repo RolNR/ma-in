@@ -283,6 +283,32 @@ export async function bulkDeleteShipments(
   }
 }
 
+export async function deleteBatch(
+  batchId: string,
+): Promise<UpdateStatusState> {
+  const session = await auth()
+  if (!session) return { status: 'error', message: 'No autenticado.' }
+  if (session.user.role !== 'admin') return { status: 'error', message: 'Sin permisos para eliminar.' }
+
+  try {
+    const shipments = await db.shipment.findMany({ where: { batchId }, select: { id: true } })
+    const ids = shipments.map(s => s.id)
+
+    await db.$transaction(async (tx) => {
+      await tx.shipmentEvent.deleteMany({ where: { shipmentId: { in: ids } } })
+      await tx.shipmentEvidence.deleteMany({ where: { shipmentId: { in: ids } } })
+      await tx.shipment.deleteMany({ where: { id: { in: ids } } })
+      await tx.batch.delete({ where: { id: batchId } })
+    })
+
+    revalidatePath('/admin/guias')
+    return { status: 'success' }
+  } catch (error) {
+    console.error('[deleteBatch]', error)
+    return { status: 'error', message: 'Error al eliminar el lote.' }
+  }
+}
+
 export async function updateBatchStatus(
   batchId: string,
   status: ShipmentStatus,

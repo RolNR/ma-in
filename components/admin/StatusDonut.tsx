@@ -10,6 +10,7 @@ const COLORS: Record<string, string> = {
   ERRONEA:             '#ef4444',
   CADUCADA:            '#f97316',
   SIN_UTILIZAR:        '#d1d5db',
+  CANCELADA:           '#dc2626',
 }
 
 const LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const LABELS: Record<string, string> = {
   ERRONEA:             'Errónea',
   CADUCADA:            'Caducada',
   SIN_UTILIZAR:        'Sin utilizar',
+  CANCELADA:           'Cancelada',
 }
 
 interface Props {

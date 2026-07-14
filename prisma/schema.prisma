@@ -86,6 +86,7 @@ model Batch {
   client      Client?    @relation(fields: [clientId], references: [id])
   user        User?      @relation(fields: [createdBy], references: [id])
   shipments   Shipment[]
+  csvImports  CsvImport[]
 
   @@map("batches")
 }
@@ -101,6 +102,7 @@ enum ShipmentStatus {
   ERRONEA
   CADUCADA
   SIN_UTILIZAR
+  CANCELADA
 }
 
 model Shipment {
@@ -223,6 +225,7 @@ model CsvImport {
   id         Int      @id @default(autoincrement())
   carrierId  Int      @map("carrier_id")
   importedBy Int      @map("imported_by")
+  batchId    String?  @map("batch_id")
   filename   String   @db.VarChar(200)
   totalRows  Int      @default(0) @map("total_rows")
   okRows     Int      @default(0) @map("ok_rows")
@@ -232,6 +235,7 @@ model CsvImport {
   createdAt  DateTime @default(now()) @map("created_at")
   carrier    Carrier  @relation(fields: [carrierId], references: [id])
   user       User     @relation(fields: [importedBy], references: [id])
+  batch      Batch?   @relation(fields: [batchId], references: [id], onDelete: SetNull)
 
   @@map("csv_imports")
 }

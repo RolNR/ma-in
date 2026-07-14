@@ -118,7 +118,7 @@ async function getStats() {
     inTransitCount,
     delivered: statusMap['ENTREGADO'] ?? 0,
     statusData: (
-      ['PENDIENTE', 'EN_RUTA', 'EN_PROCESO_ENTREGA', 'ENTREGADO', 'ERRONEA', 'CADUCADA', 'SIN_UTILIZAR'] as const
+      ['PENDIENTE', 'EN_RUTA', 'EN_PROCESO_ENTREGA', 'ENTREGADO', 'ERRONEA', 'CADUCADA', 'SIN_UTILIZAR', 'CANCELADA'] as const
     ).map(s => ({ status: s, count: statusMap[s] ?? 0 })),
     activityData,
     inTransit,

@@ -8,6 +8,7 @@ type ShipmentStatus =
   | 'ERRONEA'
   | 'CADUCADA'
   | 'SIN_UTILIZAR'
+  | 'CANCELADA'
 
 const STATUS_CONFIG: Record<ShipmentStatus, {
   variant: 'warning' | 'primary' | 'secondary' | 'success' | 'error' | 'default'
@@ -20,6 +21,7 @@ const STATUS_CONFIG: Record<ShipmentStatus, {
   ERRONEA:             { variant: 'error',     label: 'Errónea' },
   CADUCADA:            { variant: 'default',   label: 'Caducada' },
   SIN_UTILIZAR:        { variant: 'default',   label: 'Sin utilizar' },
+  CANCELADA:           { variant: 'error',     label: 'Cancelada' },
 }
 
 interface StatusBadgeProps {

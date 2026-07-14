@@ -83,6 +83,7 @@ export default async function PortalGuiasPage({ searchParams }: PageProps) {
           <option value="ERRONEA">Errónea</option>
           <option value="CADUCADA">Caducada</option>
           <option value="SIN_UTILIZAR">Sin utilizar</option>
+          <option value="CANCELADA">Cancelada</option>
         </select>
         <div className="flex gap-2">
           <button

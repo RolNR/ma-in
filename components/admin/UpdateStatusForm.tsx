@@ -13,6 +13,7 @@ const STATUS_OPTIONS: { value: ShipmentStatus; label: string }[] = [
   { value: 'ERRONEA',             label: 'Errónea' },
   { value: 'CADUCADA',            label: 'Caducada' },
   { value: 'SIN_UTILIZAR',        label: 'Sin utilizar' },
+  { value: 'CANCELADA',           label: 'Cancelada' },
 ]
 
 interface Props {

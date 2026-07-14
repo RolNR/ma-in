@@ -1,45 +1,28 @@
 'use client'
 
 import { useFormState, useFormStatus } from 'react-dom'
-import { importShipments, type ImportState } from '@/lib/actions/imports'
+import { importShipments, previewImportShipments, type ImportState, type PreviewState, type PreviewRow, type PreviewRowIssue } from '@/lib/actions/imports'
 import { useRef, useState, useEffect } from 'react'
-import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
+import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2, AlertTriangle, Layers } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface PreviewRow {
-  trackingCode: string | null
-  company: string | null
-  destination: string | null
-  status: string | null
-  date: string
-}
-
-interface PreviewStats {
-  total: number
-  toImport: number
-  withoutCode: number
-  intraDups: number
-}
-
-interface ClientRef {
-  companyName: string
-  legalName: string | null
-}
+type ReadyPreview = Extract<PreviewState, { status: 'ready' }>
 
 type LocalStep =
   | { type: 'idle' }
   | { type: 'parsing' }
-  | { type: 'preview'; file: File; rows: PreviewRow[]; stats: PreviewStats; unmatchedOrigins: string[] }
+  | { type: 'preview'; file: File; preview: ReadyPreview }
+
+const ISSUE_LABEL: Record<PreviewRowIssue, string> = {
+  sin_codigo: 'Sin código de rastreo',
+  ya_existe: 'Ya existe en el sistema',
+  duplicado_archivo: 'Duplicado en el archivo',
+  sin_cliente: 'Sin cliente asignado',
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function toDateStr(val: unknown): string {
-  if (val instanceof Date) return val.toLocaleDateString('es-MX')
-  if (typeof val === 'number')
-    return new Date(Math.round((val - 25569) * 86400 * 1000)).toLocaleDateString('es-MX')
-  return '—'
-}
 
 function StatCard({ label, value, color }: { label: string; value: number; color: 'gray' | 'green' | 'amber' | 'red' }) {
   const colors = { gray: 'text-gray-900', green: 'text-green-700', amber: 'text-amber-600', red: 'text-red-600' }
@@ -51,6 +34,66 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   )
 }
 
+function IssueCodeList({ label, codes, total }: { label: string; codes: (string | null)[]; total: number }) {
+  const shown = codes.filter((c): c is string => Boolean(c))
+  return (
+    <div>
+      <span className="font-medium">{label} ({total}):</span>{' '}
+      <span className="inline-flex flex-wrap gap-1.5 mt-1">
+        {shown.map(code => (
+          <span key={code} className="px-1.5 py-0.5 text-[11px] font-mono bg-white border border-amber-300 rounded text-amber-900">
+            {code}
+          </span>
+        ))}
+        {total > shown.length && (
+          <span className="text-[11px] text-amber-600 self-center">+ {total - shown.length} más</span>
+        )}
+      </span>
+    </div>
+  )
+}
+
+function PreviewTable({ rows, emptyLabel }: { rows: PreviewRow[]; emptyLabel: string }) {
+  if (rows.length === 0) return <p className="text-xs text-gray-400 px-1">{emptyLabel}</p>
+  return (
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="w-full text-xs">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            {['Código', 'Empresa', 'Destino', 'Status', 'Fecha', ''].map(h => (
+              <th key={h} className="text-left px-3 py-2 font-semibold text-gray-500">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {rows.map((row, i) => (
+            <tr key={i} className={row.issue ? 'bg-amber-50/60' : 'hover:bg-gray-50'}>
+              <td className="px-3 py-2 font-mono text-gray-700">
+                {row.trackingCode ?? <span className="text-red-500 italic">sin código</span>}
+              </td>
+              <td className="px-3 py-2 text-gray-600 max-w-[160px]">
+                <span className="block truncate" title={row.company ?? ''}>{row.company ?? '—'}</span>
+              </td>
+              <td className="px-3 py-2 text-gray-600">{row.destination ?? '—'}</td>
+              <td className="px-3 py-2 text-gray-500 max-w-[140px]">
+                <span className="block truncate" title={row.status ?? ''}>{row.status ?? '—'}</span>
+              </td>
+              <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{row.date}</td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                {row.issue && (
+                  <span className="text-[11px] font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                    {ISSUE_LABEL[row.issue]}
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ─── Submit button ────────────────────────────────────────────────────────────
 
 function ConfirmButton({ total }: { total: number }) {
@@ -58,7 +101,7 @@ function ConfirmButton({ total }: { total: number }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || total === 0}
       className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg text-sm transition-colors"
     >
       {pending
@@ -89,6 +132,20 @@ function SuccessView({ state }: { state: Extract<ImportState, { status: 'success
             ✓ {state.matched} guías asignadas automáticamente a clientes registrados.
           </p>
         )}
+        {state.batchId && (
+          <div className="flex items-center justify-between mt-4 bg-white border border-green-200 px-3 py-2.5 rounded-lg">
+            <p className="text-xs text-gray-500">
+              Estas guías quedaron agrupadas en un lote. Revísalo para confirmar que todo esté correcto —
+              si detectas un error puedes eliminar el lote completo desde ahí.
+            </p>
+            <Link
+              href={`/admin/lote/${state.batchId}`}
+              className="flex items-center gap-1.5 shrink-0 ml-3 text-xs font-medium text-primary-700 hover:underline whitespace-nowrap"
+            >
+              <Layers className="w-3.5 h-3.5" /> Ver lote importado
+            </Link>
+          </div>
+        )}
       </div>
       <button
         type="button"
@@ -103,16 +160,12 @@ function SuccessView({ state }: { state: Extract<ImportState, { status: 'success
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function ImportForm({ clients }: { clients: ClientRef[] }) {
+export function ImportForm() {
   const [serverState, formAction] = useFormState(importShipments, { status: 'idle' })
   const [local, setLocal] = useState<LocalStep>({ type: 'idle' })
+  const [previewError, setPreviewError] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // legalName tiene prioridad; si no existe, usamos companyName como fallback
-  const knownOrigins = new Set(
-    clients.map(c => (c.legalName ?? c.companyName).trim().toUpperCase())
-  )
 
   // Assign file to hidden input AFTER the preview form renders (fileInputRef is null before that)
   useEffect(() => {
@@ -122,62 +175,20 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
     fileInputRef.current.files = dt.files
   }, [local])
 
-  async function processFile(file: File) {
-    if (!/\.(xlsx|xls)$/i.test(file.name)) return
+  async function processFile(file: File | undefined) {
+    if (!file || !/\.(xlsx|xls)$/i.test(file.name)) return
+    setPreviewError('')
     setLocal({ type: 'parsing' })
 
-    try {
-      const XLSX = await import('xlsx')
-      const buffer = await file.arrayBuffer()
-      const wb = XLSX.read(new Uint8Array(buffer), { type: 'array', cellDates: true })
-      const ws = wb.Sheets[wb.SheetNames[0]]
-      const rawData = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1 }) as unknown[][]
+    const fd = new FormData()
+    fd.set('file', file)
+    const result = await previewImportShipments({ status: 'idle' }, fd)
 
-      if (rawData.length < 2) { setLocal({ type: 'idle' }); return }
-
-      const headers = (rawData[0] as unknown[]).map(h => String(h ?? '').trim())
-      const dataRows = rawData
-        .slice(1)
-        .map(row => {
-          const obj: Record<string, unknown> = {}
-          headers.forEach((h, i) => { obj[h] = (row as unknown[])[i] ?? null })
-          return obj
-        })
-        .filter(r => Object.values(r).some(v => v !== null && v !== ''))
-
-      // Stats
-      const tcs = dataRows.map(r => String(r['COD DE RASTREO'] ?? '').trim()).filter(Boolean)
-      const uniqueTCs = new Set(tcs)
-      const withoutCode = dataRows.length - tcs.length
-      const intraDups = tcs.length - uniqueTCs.size
-
-      // Detect unmatched origins (unique NOMBRE CORTO DE ORIGEN not in knownOrigins)
-      const allOrigins = dataRows
-        .map(r => String(r['NOMBRE CORTO DE ORIGEN'] ?? '').trim())
-        .filter(Boolean)
-      const uniqueOrigins = Array.from(new Set(allOrigins.map(o => o.toUpperCase())))
-      const unmatchedOrigins = uniqueOrigins
-        .filter(o => !knownOrigins.has(o))
-        .map(o => allOrigins.find(a => a.toUpperCase() === o) ?? o) // preserve original casing
-
-      // Preview rows (first 10)
-      const rows: PreviewRow[] = dataRows.slice(0, 10).map(r => ({
-        trackingCode: String(r['COD DE RASTREO'] ?? '').trim() || null,
-        company: String(r['NOMBRE CORTO DE ORIGEN'] ?? '').trim() || null,
-        destination: String(r['DESTINO'] ?? '').trim() || null,
-        status: String(r['STATUS'] ?? '').trim() || null,
-        date: toDateStr(r['FECHA']),
-      }))
-
-      setLocal({
-        type: 'preview',
-        file,
-        rows,
-        stats: { total: dataRows.length, toImport: uniqueTCs.size, withoutCode, intraDups },
-        unmatchedOrigins,
-      })
-    } catch {
+    if (result.status === 'ready') {
+      setLocal({ type: 'preview', file, preview: result })
+    } else {
       setLocal({ type: 'idle' })
+      setPreviewError(result.status === 'error' ? result.message : 'No se pudo analizar el archivo.')
     }
   }
 
@@ -191,8 +202,8 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
 
   // ── Preview ──────────────────────────────────────────────────────────────
   if (local.type === 'preview') {
-    const { file, rows, stats, unmatchedOrigins } = local
-    const omitted = stats.withoutCode + stats.intraDups
+    const { file, preview } = local
+    const omitted = preview.skippedExisting + preview.intraDups + preview.withoutCode
 
     return (
       <form action={formAction} className="space-y-5">
@@ -204,7 +215,7 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
             <FileSpreadsheet className="w-5 h-5 text-green-600 shrink-0" />
             <div>
               <p className="text-sm font-medium text-gray-900">{file.name}</p>
-              <p className="text-xs text-gray-400">{stats.total} filas detectadas</p>
+              <p className="text-xs text-gray-400">{preview.total} filas detectadas</p>
             </div>
           </div>
           <button
@@ -218,71 +229,72 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <StatCard label="A importar" value={stats.toImport} color="green" />
+          <StatCard label="A importar" value={preview.toImport} color="green" />
           <StatCard label="Omitidas" value={omitted} color={omitted > 0 ? 'amber' : 'gray'} />
-          <StatCard label="Sin código" value={stats.withoutCode} color={stats.withoutCode > 0 ? 'red' : 'gray'} />
+          <StatCard label="Sin código" value={preview.withoutCode} color={preview.withoutCode > 0 ? 'red' : 'gray'} />
         </div>
 
         {omitted > 0 && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
-            {stats.intraDups > 0 && `${stats.intraDups} código(s) duplicados dentro del archivo. `}
-            {stats.withoutCode > 0 && `${stats.withoutCode} fila(s) sin código de rastreo. `}
-            Estas filas serán omitidas.
-          </p>
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg space-y-2">
+            <p>
+              {preview.skippedExisting > 0 && `${preview.skippedExisting} código(s) ya existen en el sistema. `}
+              {preview.intraDups > 0 && `${preview.intraDups} código(s) duplicados dentro del archivo. `}
+              {preview.withoutCode > 0 && `${preview.withoutCode} fila(s) sin código de rastreo. `}
+              Estas filas serán omitidas.
+            </p>
+            {preview.intraDups > 0 && (
+              <IssueCodeList
+                label="Duplicados"
+                codes={preview.sampleIssues.filter(r => r.issue === 'duplicado_archivo').map(r => r.trackingCode)}
+                total={preview.intraDups}
+              />
+            )}
+            {preview.skippedExisting > 0 && (
+              <IssueCodeList
+                label="Ya existentes"
+                codes={preview.sampleIssues.filter(r => r.issue === 'ya_existe').map(r => r.trackingCode)}
+                total={preview.skippedExisting}
+              />
+            )}
+          </div>
         )}
 
-        <p className="text-xs text-gray-400">
-          * Las guías que ya existen en el sistema también serán omitidas automáticamente.
-        </p>
-
-        {/* Preview table */}
+        {/* Preview de filas a importar */}
         <div>
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-            Primeras {rows.length} filas
+            Muestra de guías a importar
           </p>
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  {['Código', 'Empresa', 'Destino', 'Status', 'Fecha'].map(h => (
-                    <th key={h} className="text-left px-3 py-2 font-semibold text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {rows.map((row, i) => (
-                  <tr key={i} className={!row.trackingCode ? 'bg-red-50' : 'hover:bg-gray-50'}>
-                    <td className="px-3 py-2 font-mono text-gray-700">
-                      {row.trackingCode ?? <span className="text-red-500 italic">sin código</span>}
-                    </td>
-                    <td className="px-3 py-2 text-gray-600 max-w-[160px]">
-                      <span className="block truncate" title={row.company ?? ''}>{row.company ?? '—'}</span>
-                    </td>
-                    <td className="px-3 py-2 text-gray-600">{row.destination ?? '—'}</td>
-                    <td className="px-3 py-2 text-gray-500 max-w-[140px]">
-                      <span className="block truncate" title={row.status ?? ''}>{row.status ?? '—'}</span>
-                    </td>
-                    <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{row.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {stats.total > 10 && (
+          <PreviewTable rows={preview.sampleOk} emptyLabel="No hay guías para importar en este archivo." />
+          {preview.toImport > preview.sampleOk.length && (
             <p className="text-xs text-gray-400 mt-1.5 pl-1">
-              + {(stats.total - 10).toLocaleString()} filas más no mostradas
+              + {(preview.toImport - preview.sampleOk.length).toLocaleString()} guías más no mostradas
             </p>
           )}
         </div>
 
+        {/* Preview de filas con problemas */}
+        {preview.sampleIssues.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Muestra de filas que se omitirán
+            </p>
+            <PreviewTable rows={preview.sampleIssues} emptyLabel="" />
+            {omitted > preview.sampleIssues.length && (
+              <p className="text-xs text-gray-400 mt-1.5 pl-1">
+                + {(omitted - preview.sampleIssues.length).toLocaleString()} fila(s) más no mostradas
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Alerta de orígenes sin cliente registrado */}
-        {unmatchedOrigins.length > 0 && (
+        {preview.unmatchedOrigins.length > 0 && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
             <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              {unmatchedOrigins.length === 1
+              {preview.unmatchedOrigins.length === 1
                 ? '1 origen sin cliente registrado'
-                : `${unmatchedOrigins.length} orígenes sin cliente registrado`}
+                : `${preview.unmatchedOrigins.length} orígenes sin cliente registrado`}
             </div>
             <p className="text-xs text-amber-700">
               Los siguientes valores en <strong>NOMBRE CORTO DE ORIGEN</strong> no coinciden con ninguna
@@ -290,7 +302,7 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
               Puedes continuar o cancelar para agregar/corregir los clientes primero.
             </p>
             <ul className="flex flex-wrap gap-1.5 pt-1">
-              {unmatchedOrigins.map(o => (
+              {preview.unmatchedOrigins.map(o => (
                 <li
                   key={o}
                   className="px-2 py-0.5 text-xs font-mono bg-white border border-amber-300 rounded text-amber-900"
@@ -309,7 +321,7 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
         )}
 
         <div className="flex gap-3 pt-1">
-          <ConfirmButton total={stats.toImport} />
+          <ConfirmButton total={preview.toImport} />
           <button
             type="button"
             onClick={() => setLocal({ type: 'idle' })}
@@ -324,43 +336,50 @@ export function ImportForm({ clients }: { clients: ClientRef[] }) {
 
   // ── Idle / Parsing ───────────────────────────────────────────────────────
   return (
-    <div
-      onClick={() => local.type === 'idle' && document.getElementById('file-input-trigger')?.click()}
-      onDragOver={e => { e.preventDefault(); if (local.type === 'idle') setDragging(true) }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      className={[
-        'flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition-colors',
-        local.type === 'parsing'
-          ? 'border-primary-300 bg-primary-50 cursor-wait'
-          : dragging
-          ? 'border-primary-500 bg-primary-50 cursor-copy'
-          : 'border-gray-300 bg-gray-50 hover:border-primary-400 hover:bg-primary-50/40 cursor-pointer',
-      ].join(' ')}
-    >
-      {local.type === 'parsing' ? (
-        <>
-          <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
-          <p className="text-sm font-medium text-primary-700">Analizando archivo...</p>
-        </>
-      ) : (
-        <>
-          <Upload className={`w-10 h-10 ${dragging ? 'text-primary-500' : 'text-gray-400'}`} />
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-700">
-              {dragging ? 'Suelta el archivo aquí' : 'Arrastra el archivo o haz clic para seleccionar'}
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">Formato: .xlsx o .xls</p>
-          </div>
-        </>
+    <div>
+      <div
+        onClick={() => local.type === 'idle' && document.getElementById('file-input-trigger')?.click()}
+        onDragOver={e => { e.preventDefault(); if (local.type === 'idle') setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        className={[
+          'flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition-colors',
+          local.type === 'parsing'
+            ? 'border-primary-300 bg-primary-50 cursor-wait'
+            : dragging
+            ? 'border-primary-500 bg-primary-50 cursor-copy'
+            : 'border-gray-300 bg-gray-50 hover:border-primary-400 hover:bg-primary-50/40 cursor-pointer',
+        ].join(' ')}
+      >
+        {local.type === 'parsing' ? (
+          <>
+            <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
+            <p className="text-sm font-medium text-primary-700">Analizando archivo...</p>
+          </>
+        ) : (
+          <>
+            <Upload className={`w-10 h-10 ${dragging ? 'text-primary-500' : 'text-gray-400'}`} />
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-700">
+                {dragging ? 'Suelta el archivo aquí' : 'Arrastra el archivo o haz clic para seleccionar'}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">Formato: .xlsx o .xls</p>
+            </div>
+          </>
+        )}
+        <input
+          id="file-input-trigger"
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={e => processFile(e.target.files?.[0])}
+        />
+      </div>
+      {previewError && (
+        <p className="flex items-start gap-2 text-sm text-red-600 bg-red-50 px-3 py-2.5 rounded-lg mt-3">
+          <XCircle className="w-4 h-4 mt-0.5 shrink-0" /> {previewError}
+        </p>
       )}
-      <input
-        id="file-input-trigger"
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={e => processFile(e.target.files![0])}
-      />
     </div>
   )
 }

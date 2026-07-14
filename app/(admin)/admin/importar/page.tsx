@@ -1,5 +1,4 @@
 import { ImportForm } from '@/components/admin/ImportForm'
-import { db } from '@/lib/db'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
@@ -7,12 +6,6 @@ export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Importar guías' }
 
 export default async function ImportarPage() {
-  const clients = await db.client.findMany({
-    where: { active: true },
-    select: { companyName: true, legalName: true },
-    orderBy: { companyName: 'asc' },
-  })
-
   return (
     <div className="p-8">
       <div className="mb-6">
@@ -29,7 +22,7 @@ export default async function ImportarPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-        <ImportForm clients={clients} />
+        <ImportForm />
       </div>
     </div>
   )

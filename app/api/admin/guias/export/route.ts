@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<ShipmentStatus, string> = {
   ERRONEA:             'Errónea',
   CADUCADA:            'Caducada',
   SIN_UTILIZAR:        'Sin utilizar',
+  CANCELADA:           'Cancelada',
 }
 
 export async function GET(req: NextRequest) {

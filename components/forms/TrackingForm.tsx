@@ -125,6 +125,15 @@ const TERMINAL: Record<string, TerminalStatus> = {
     alertBorder: 'border-gray-200',
     alertText: 'text-gray-600',
   },
+  CANCELADA: {
+    label: 'Envío cancelado',
+    description: 'Este envío fue cancelado. Contáctanos para más información.',
+    Icon: XCircle,
+    badge: 'bg-red-100 text-red-700',
+    alertBg: 'bg-red-50',
+    alertBorder: 'border-red-200',
+    alertText: 'text-red-700',
+  },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

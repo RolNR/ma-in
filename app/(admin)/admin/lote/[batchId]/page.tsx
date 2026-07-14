@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { UpdateStatusForm } from '@/components/admin/UpdateStatusForm'
+import { BatchActions } from '@/components/admin/BatchActions'
 import Link from 'next/link'
 import { ArrowLeft, Layers, Printer } from 'lucide-react'
 import type { ShipmentStatus } from '@/lib/generated/prisma/client'
@@ -12,6 +14,7 @@ interface PageProps {
 
 export default async function LoteDetailPage({ params }: PageProps) {
   const { batchId } = await params
+  const session = await auth()
 
   const batch = await db.batch.findUnique({
     where: { id: batchId },
@@ -126,6 +129,16 @@ export default async function LoteDetailPage({ params }: PageProps) {
               forceBatch
             />
           </div>
+
+          {session?.user.role === 'admin' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Zona de riesgo</h2>
+              <p className="text-xs text-gray-400 mb-4">
+                Útil si esta importación tuvo un error y necesitas revertirla.
+              </p>
+              <BatchActions batchId={batchId} guideCount={batch.shipments.length} />
+            </div>
+          )}
         </div>
 
       </div>

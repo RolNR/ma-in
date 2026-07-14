@@ -382,6 +382,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   ERRONEA:             { label: 'Errónea',                color: '#991b1b', bg: '#fef2f2' },
   CADUCADA:            { label: 'Caducada',               color: '#374151', bg: '#f3f4f6' },
   SIN_UTILIZAR:        { label: 'Sin utilizar',           color: '#374151', bg: '#f9fafb' },
+  CANCELADA:           { label: 'Cancelada',              color: '#991b1b', bg: '#fef2f2' },
 }
 
 function statusBadge(status: string): string {
