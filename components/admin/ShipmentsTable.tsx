@@ -21,6 +21,7 @@ interface Shipment {
   status: string
   archived: boolean
   shipmentDate: Date
+  batch?: { guideCount: number } | null
 }
 
 interface ShipmentsTableProps {
@@ -71,6 +72,9 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
   const allChecked = batchIds.every(id => selected.has(id))
   const someChecked = batchIds.some(id => selected.has(id))
   const Chevron = open ? ChevronDown : ChevronRight
+  // guideCount refleja el total real del lote; batch.shipments solo trae lo que cayó en esta página
+  const totalCount = first.batch?.guideCount ?? batch.shipments.length
+  const hiddenCount = totalCount - batch.shipments.length
 
   return (
     <>
@@ -91,7 +95,7 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
           <div className="flex items-center gap-2">
             <Chevron className="w-4 h-4 shrink-0" />
             <Package className="w-4 h-4 shrink-0" />
-            <span>Lote · {batch.shipments.length} guías</span>
+            <span>Lote · {totalCount} guías</span>
           </div>
         </td>
         <td className={`${cell} text-gray-700`}>{first.carrier.name}</td>
@@ -123,6 +127,17 @@ function BatchRow({ batch, selected, onToggleBatch, onToggleOne }: BatchRowProps
           <td className={`${cell} text-gray-500`}>{formatDateOnly(s.shipmentDate)}</td>
         </tr>
       ))}
+
+      {open && hiddenCount > 0 && (
+        <tr className="bg-primary-50/40">
+          <td className={cell} />
+          <td className={`${cell} pl-10`} colSpan={7}>
+            <Link href={`/admin/lote/${batch.batchId}`} className="text-xs text-primary-700 hover:underline">
+              + {hiddenCount} guía(s) más en este lote — ver lote completo
+            </Link>
+          </td>
+        </tr>
+      )}
     </>
   )
 }
