@@ -117,19 +117,17 @@ interface ParseResult {
 
 const SAMPLE_LIMIT = 12
 
-async function parseAndValidate(file: File | null): Promise<ParseResult | { error: string }> {
+async function parseAndValidate(
+  file: File | null,
+  carrierId: number | null,
+): Promise<ParseResult | { error: string }> {
   if (!file || file.size === 0) return { error: 'Selecciona un archivo.' }
   if (!/\.(xlsx|xls)$/i.test(file.name))
     return { error: 'El archivo debe ser .xlsx o .xls.' }
+  if (!carrierId) return { error: 'Selecciona la paquetería del archivo.' }
 
-  // Carrier del archivo maestro (Estafeta); fallback al primero activo
-  const carrier = await db.carrier.findFirst({
-    where: { OR: [{ code: 'EST' }, { active: true }] },
-    orderBy: { id: 'asc' },
-    select: { id: true },
-  })
-  if (!carrier) return { error: 'No hay carriers registrados en el sistema.' }
-  const carrierId = carrier.id
+  const carrier = await db.carrier.findFirst({ where: { id: carrierId, active: true }, select: { id: true } })
+  if (!carrier) return { error: 'La paquetería seleccionada no es válida.' }
 
   // Parse Excel — normalizar headers para eliminar espacios en nombre de columna
   let rows: Record<string, unknown>[]
@@ -279,7 +277,8 @@ export async function previewImportShipments(
   const session = await auth()
   if (!session?.user) return { status: 'error', message: 'No autorizado.' }
 
-  const result = await parseAndValidate(formData.get('file') as File | null)
+  const carrierId = Number(formData.get('carrierId')) || null
+  const result = await parseAndValidate(formData.get('file') as File | null, carrierId)
   if ('error' in result) return { status: 'error', message: result.error }
 
   return {
@@ -307,7 +306,8 @@ export async function importShipments(
   const session = await auth()
   if (!session?.user) return { status: 'error', message: 'No autorizado.' }
 
-  const result = await parseAndValidate(formData.get('file') as File | null)
+  const carrierIdInput = Number(formData.get('carrierId')) || null
+  const result = await parseAndValidate(formData.get('file') as File | null, carrierIdInput)
   if ('error' in result) return { status: 'error', message: result.error }
 
   const { carrierId, totalRows, toInsert, matchedCount, errorCount, skippedExisting, intraDups } = result

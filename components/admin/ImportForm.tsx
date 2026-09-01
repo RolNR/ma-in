@@ -8,6 +8,12 @@ import { Upload, FileSpreadsheet, X, CheckCircle2, XCircle, Loader2, AlertTriang
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+interface CarrierOption {
+  id: number
+  name: string
+  code: string
+}
+
 type ReadyPreview = Extract<PreviewState, { status: 'ready' }>
 
 type LocalStep =
@@ -160,12 +166,16 @@ function SuccessView({ state }: { state: Extract<ImportState, { status: 'success
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function ImportForm() {
+export function ImportForm({ carriers }: { carriers: CarrierOption[] }) {
   const [serverState, formAction] = useFormState(importShipments, { status: 'idle' })
   const [local, setLocal] = useState<LocalStep>({ type: 'idle' })
   const [previewError, setPreviewError] = useState('')
   const [dragging, setDragging] = useState(false)
+  const [carrierId, setCarrierId] = useState(
+    () => carriers.find(c => c.code === 'EST')?.id ?? carriers[0]?.id ?? 0,
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const selectedCarrier = carriers.find(c => c.id === carrierId)
 
   // Assign file to hidden input AFTER the preview form renders (fileInputRef is null before that)
   useEffect(() => {
@@ -182,6 +192,7 @@ export function ImportForm() {
 
     const fd = new FormData()
     fd.set('file', file)
+    fd.set('carrierId', String(carrierId))
     const result = await previewImportShipments({ status: 'idle' }, fd)
 
     if (result.status === 'ready') {
@@ -208,6 +219,7 @@ export function ImportForm() {
     return (
       <form action={formAction} className="space-y-5">
         <input ref={fileInputRef} name="file" type="file" accept=".xlsx,.xls" className="hidden" />
+        <input type="hidden" name="carrierId" value={carrierId} />
 
         {/* File header */}
         <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -215,7 +227,9 @@ export function ImportForm() {
             <FileSpreadsheet className="w-5 h-5 text-green-600 shrink-0" />
             <div>
               <p className="text-sm font-medium text-gray-900">{file.name}</p>
-              <p className="text-xs text-gray-400">{preview.total} filas detectadas</p>
+              <p className="text-xs text-gray-400">
+                {preview.total} filas detectadas · Paquetería: {selectedCarrier?.name ?? '—'}
+              </p>
             </div>
           </div>
           <button
@@ -337,6 +351,22 @@ export function ImportForm() {
   // ── Idle / Parsing ───────────────────────────────────────────────────────
   return (
     <div>
+      <div className="mb-4">
+        <label htmlFor="carrier-select" className="block text-xs font-medium text-gray-500 mb-1.5">
+          Paquetería del archivo
+        </label>
+        <select
+          id="carrier-select"
+          value={carrierId}
+          onChange={e => setCarrierId(Number(e.target.value))}
+          disabled={local.type === 'parsing'}
+          className="w-full sm:w-64 rounded-lg border border-gray-300 text-sm px-3 py-2 text-gray-700 bg-white disabled:opacity-50"
+        >
+          {carriers.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
       <div
         onClick={() => local.type === 'idle' && document.getElementById('file-input-trigger')?.click()}
         onDragOver={e => { e.preventDefault(); if (local.type === 'idle') setDragging(true) }}
