@@ -139,24 +139,44 @@ middleware.ts     — Protege /admin/* con NextAuth(authConfig)
 - Middleware protege `/admin/*` en el edge usando `auth.config.ts` (sin Node.js APIs)
 - Server Components usan `auth()` de `lib/auth.ts` para leer sesión
 
+## Importación de guías (CSV/Excel)
+
+- `/admin/importar` → `components/admin/ImportForm.tsx` → `lib/actions/imports.ts`
+- **Preview server-side real**: `previewImportShipments` y `importShipments` comparten la misma función interna `parseAndValidate()` — el preview nunca puede divergir de lo que realmente se escribe en BD. El cliente ya no parsea el Excel (se eliminó el `xlsx` duplicado en `ImportForm.tsx`).
+- **Columnas de Excel esperadas** (header exacto, sensible a mayúsculas/espacios): `COD DE RASTREO` (obligatoria), `NOMBRE CORTO DE ORIGEN`, `FOLIO INTERNO`, `TIPO DE SERVICIO`, `NUM GUIA`, `DESTINO`, `STATUS`, `RECIBIDO DESTINO`, `CONTENIDO`, `PESO MAIN`, `SOBREPESO MAIN`, `FECHA` + columnas de `carrierMetadata` (`PESO ESTAFETA`, `SOBREPESO ESTAFETA`, `SEGURO`, `PRECIO DE GUIA`, `CARGO X COMBUSTIBLE`, `PRECIO SOBREPESO`, `SUBTOTAL`).
+  - Si el archivo trae `PESO ESTAFETA`/`SOBREPESO ESTAFETA` pero no `PESO MAIN`/`SOBREPESO MAIN` (formato usado por algunos remitentes), `weight`/`overweight` cae a esos valores como fallback en vez de quedar en `null` (2026-09-01).
+  - Carrier: el usuario lo selecciona explícitamente en un `<select>` en `/admin/importar` (carriers activos, cargados server-side en `page.tsx`) y se envía como `carrierId` en el `FormData`; `parseAndValidate()` valida que exista y esté activo. Ya no se infiere automáticamente (2026-09-01).
+  - Cliente se vincula por match exacto (mayúsculas/trim) entre `NOMBRE CORTO DE ORIGEN` y `legalName`/`companyName` de un cliente activo; si no hay match, la guía importa con `clientId = null`.
+  - Status no reconocido por `normalizeStatus()` cae por default a `EN_RUTA`.
+- **Cada importación crea un `Batch`** (agrupa las guías insertadas, `Batch.guideCount` = total real). Visible/reversible en `/admin/lote/[batchId]` vía `components/admin/BatchActions.tsx` → `deleteBatch()` (solo admin, borra el lote completo si la importación tuvo un error).
+- Al mostrar totales de un lote en listas paginadas (ej. `ShipmentsTable.tsx`), usar siempre `Batch.guideCount`, **no** `shipments.length` del array cargado — la lista de guías pagina a nivel de shipment individual, así que un lote puede repartirse entre varias páginas.
+
+## `ShipmentStatus` (enum)
+
+Valores: `PENDIENTE`, `EN_RUTA`, `EN_PROCESO_ENTREGA`, `ENTREGADO`, `ERRONEA`, `CADUCADA`, `SIN_UTILIZAR`, `CANCELADA`.
+
+Al agregar un valor nuevo al enum, actualizar también (todos sin fallback exhaustivo automático):
+`components/admin/StatusBadge.tsx`, `StatusDonut.tsx`, `UpdateStatusForm.tsx`, `ShipmentsTable.tsx`, `lib/actions/imports.ts` (`normalizeStatus`), `lib/email.ts` (`STATUS_CONFIG`), `components/forms/TrackingForm.tsx` (`TERMINAL`, si es un estado terminal), `app/api/admin/guias/export/route.ts`, `app/(admin)/admin/page.tsx` (dashboard), y los filtros `<select>` en `app/(admin)/admin/guias/page.tsx` y `app/(portal)/portal/guias/page.tsx`. `ScanForm.tsx` y `data/divisions.ts` son listas curadas a propósito (no exhaustivas) — no requieren actualización.
+
+## Entornos y base de datos (Neon)
+
+- Dos branches de Neon: **dev** (local, `.env.local` líneas activas) y **production** (Vercel; en `.env.local` quedan comentadas solo como referencia manual, nunca se usan para desarrollo local).
+- `prisma.config.ts` carga `.env.local` y usa `DIRECT_URL` (conexión directa, sin pooler) para operaciones de schema (`prisma generate`, `prisma db push`). La app en runtime (`lib/db.ts`) usa `DATABASE_URL` (pooled) — son variables independientes y **ambas** deben existir en Vercel (Production).
+- El proyecto usa `prisma db push` como flujo real de schema (hay drift entre la migración inicial y el estado actual de la BD) — **no** usar `prisma migrate dev`, va a pedir resetear la base.
+- `npm run build` = `prisma generate && prisma db push && next build`. Si `DIRECT_URL` falta en las env vars de Vercel, el build falla en el paso de `db push` y Vercel se queda sirviendo el deployment anterior sin avisar con un error visible en la app — solo se ve en los logs del build.
+
 ## Comandos útiles
 
 ```bash
 npm run dev          # Dev server
-npm run build        # prisma generate + next build
+npm run build        # prisma generate + db push + next build
 npm run db:seed      # Seed carriers + admin user
 ```
 
-## Pendientes — Resend (email)
+## Email (Resend)
 
-> Bloqueados hasta que el usuario genere su cuenta en resend.com y comparta la API key.
-> Correo destino: `contacto@ma-in.mx`
-
-- [ ] Instalar `resend` y agregar `RESEND_API_KEY` al `.env.local` y `.env.local.example`
-- [ ] Crear `lib/email.ts` — cliente Resend singleton + plantillas base
-- [ ] Conectar `TravelContactForm` → Server Action `lib/actions/travel.ts` → email a `contacto@ma-in.mx` con los datos del formulario
-- [ ] Conectar `ContactForm` (soporte general) al mismo flujo de envío
-- [ ] **MA-IN Track — notificaciones automáticas por correo:**
-  - Guía creada → correo de confirmación al cliente/operador
-  - Guía actualizada (cambio de estatus) → notificación al destinatario/cliente
-  - Guía entregada → correo de confirmación de entrega con datos del receptor
+- `lib/email.ts` — cliente Resend singleton + templates HTML branded (contacto, travel, notificaciones de guía).
+- `lib/notifications.ts` — helpers que fetchan DB y llaman a los templates (nunca lanzan excepción).
+- `ContactForm` y `TravelContactForm` ya conectados vía `lib/actions/contact.ts` / `lib/actions/travel.ts`.
+- MA-IN Track: notificaciones automáticas de guía creada/actualizada/entregada ya implementadas — **no** se disparan en importaciones masivas (`importShipments` usa `createMany`, sin notificaciones, para evitar spam al cargar históricos).
+- Cron de guías estancadas: `app/api/cron/stagnant/route.ts` + `vercel.json` (9am L-V).
