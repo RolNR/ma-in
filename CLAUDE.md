@@ -180,3 +180,21 @@ npm run db:seed      # Seed carriers + admin user
 - `ContactForm` y `TravelContactForm` ya conectados vía `lib/actions/contact.ts` / `lib/actions/travel.ts`.
 - MA-IN Track: notificaciones automáticas de guía creada/actualizada/entregada ya implementadas — **no** se disparan en importaciones masivas (`importShipments` usa `createMany`, sin notificaciones, para evitar spam al cargar históricos).
 - Cron de guías estancadas: `app/api/cron/stagnant/route.ts` + `vercel.json` (9am L-V).
+
+## Mantenimiento — actualizaciones de versión mayor (planeación, no ejecutar aún)
+
+Saltos de major detectados el 2026-09-01 (`npm outdated`) — deliberadamente **no** se aplicaron como parte del mantenimiento rutinario de esa fecha porque son breaking changes, a diferencia del resto de dependencias que sí se actualizaron dentro de sus rangos `^` (ver historial de commits `chore: actualizar dependencias...`).
+
+| Paquete | Actual | Mayor disponible |
+|---|---|---|
+| Next.js | 14.2.35 | 16.3.4 |
+| React / React DOM | 18.3.1 | 19.2.x |
+| Prisma / `@prisma/client` / `@prisma/adapter-pg` | 7.10.0 | 8.0.0 (rc) |
+| next-auth | 5.0.0-beta.32 | — (v5 sigue en beta; evaluar si conviene esperar a que salga estable en vez de saltar a la v4 listada por npm) |
+
+**Antes de ejecutar cualquiera de estos saltos:**
+- [ ] Agendar en día/horario no laboral (fin de semana o después de operación) — nunca con clientes usando el sistema en vivo, para evitar un desastre operativo si algo se rompe.
+- [ ] Revisar el changelog/guía de breaking changes de cada paquete y confirmar compatibilidad cruzada (ej. Next 16 + next-auth, Prisma 8 + `@prisma/adapter-pg`, React 19 + Recharts/Tailwind).
+- [ ] Probar primero contra la branch **dev** de Neon: `npm run build` completo (incluye `prisma db push`) + smoke test manual de login, importación de guías (con el selector de carrier) y notificaciones por correo.
+- [ ] Hacer los saltos **uno a la vez**, no todos juntos, para poder aislar cuál versión causó un problema si algo falla.
+- [ ] Solo después de validar en dev, desplegar a producción y monitorear el primer uso real antes de dar por cerrado.
