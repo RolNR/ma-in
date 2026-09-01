@@ -220,6 +220,11 @@ async function parseAndValidate(file: File | null): Promise<ParseResult | { erro
       }
     }
 
+    // Algunos remitentes no envían PESO MAIN/SOBREPESO MAIN — se usa el peso
+    // reportado por el carrier como fallback para no perder el dato.
+    const pesoEstafeta = num(row['PESO ESTAFETA'])
+    const sobrepesoEstafeta = num(row['SOBREPESO ESTAFETA'])
+
     toInsert.push({
       trackingCode,
       clientId,
@@ -231,13 +236,13 @@ async function parseAndValidate(file: File | null): Promise<ParseResult | { erro
       status: normalizeStatus(row['STATUS']),
       receivedBy: str(row['RECIBIDO DESTINO']),
       content: str(row['CONTENIDO']),
-      weight: num(row['PESO MAIN']),
-      overweight: num(row['SOBREPESO MAIN']),
+      weight: num(row['PESO MAIN']) ?? pesoEstafeta,
+      overweight: num(row['SOBREPESO MAIN']) ?? sobrepesoEstafeta,
       shipmentDate: toDate(row['FECHA']),
       carrierMetadata: {
         statusOriginal: rawStatus,
-        pesoEstafeta: num(row['PESO ESTAFETA']),
-        sobrepesoEstafeta: num(row['SOBREPESO ESTAFETA']),
+        pesoEstafeta,
+        sobrepesoEstafeta,
         seguro: num(row['SEGURO']),
         precioGuia: num(row['PRECIO DE GUIA']),
         combustible: num(row['CARGO X COMBUSTIBLE']),
